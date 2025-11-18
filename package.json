@@ -1,5 +1,18 @@
 {
   "dependencies": {
+    "next": "latest",
+    "react": "^18",
+    "react-dom": "^18",
     "axios": "^1.13.2"
+  },
+  "devDependencies": {
+    "eslint": "^8",
+    "eslint-config-next": "latest"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   }
 }
