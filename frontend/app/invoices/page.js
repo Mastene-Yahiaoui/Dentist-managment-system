@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { truncateText } from '../lib/utils';
@@ -11,28 +11,17 @@ import Input from '../components/Input';
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([
-    // sample invoice to demonstrate UI
-    {
-      id: 1,
-      patient_name: 'John Doe',
-      treatment_description: 'Teeth cleaning and polish',
-      amount: 120.0,
-      status: 'Unpaid',
-      issued_at: new Date().toISOString(),
-    },
+    { id: 101, patient_name: 'John Doe', treatment_description: 'Teeth cleaning', amount: 120.0, status: 'Unpaid', issued_at: new Date().toISOString() },
+    { id: 102, patient_name: 'Jane Smith', treatment_description: 'Filling', amount: 200.0, status: 'Paid', issued_at: new Date().toISOString() },
   ]);
-
   const [patients] = useState([
     { id: 'p1', first_name: 'John', last_name: 'Doe' },
     { id: 'p2', first_name: 'Jane', last_name: 'Smith' },
   ]);
-
   const [treatments] = useState([
     { id: 't1', patient_name: 'John Doe', description: 'Teeth cleaning' },
     { id: 't2', patient_name: 'Jane Smith', description: 'Filling' },
   ]);
-
-  const [loading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [error, setError] = useState(null);
@@ -43,9 +32,7 @@ export default function Invoices() {
     amount: '',
     status: 'Unpaid',
   });
-
-  // No backend fetching in this UI-only version.
-  // Data is kept in local component state for demo and UI purposes.
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -57,7 +44,6 @@ export default function Invoices() {
     setSubmitLoading(true);
     setError(null);
     try {
-      // Add invoice locally (UI-only, no backend)
       const patient = patients.find(p => p.id === formData.patient_id);
       const treatment = treatments.find(t => t.id === formData.treatment_id);
       const newInvoice = {
@@ -79,8 +65,9 @@ export default function Invoices() {
     }
   };
 
-  const filteredInvoices =
-    filterStatus === 'all' ? invoices : invoices.filter(inv => inv.status === filterStatus);
+  const filteredInvoices = filterStatus === 'all' 
+    ? invoices 
+    : invoices.filter(inv => inv.status === filterStatus);
 
   const columns = [
     { header: 'Invoice #', render: (row) => `#${row.id}` },
@@ -100,14 +87,13 @@ export default function Invoices() {
     { header: 'Date', render: (row) => row.issued_at ? new Date(row.issued_at).toLocaleDateString() : '' },
   ];
 
-  // UI-only: no loading state to show
+  
 
   return (
     <div className="min-h-screen">
       <Navbar title="Invoices" />
       
       <div className="p-8">
-        {/* No backend fetching — UI-only mode */}
 
         <Card>
           <div className="flex justify-between items-center mb-6">
@@ -156,7 +142,7 @@ export default function Invoices() {
         </Card>
       </div>
 
-      {/* Add Invoice Modal */}
+      
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
