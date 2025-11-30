@@ -11,16 +11,34 @@ import Input from '../components/Input';
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([
-    { id: 101, patient_name: 'John Doe', treatment_description: 'Teeth cleaning', amount: 120.0, status: 'Unpaid', issued_at: new Date().toISOString() },
-    { id: 102, patient_name: 'Jane Smith', treatment_description: 'Filling', amount: 200.0, status: 'Paid', issued_at: new Date().toISOString() },
+    { id: 101, patient_name: 'John Doe', treatment_description: 'Teeth cleaning', amount: 120.0, status: 'Unpaid', issued_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 102, patient_name: 'Jane Smith', treatment_description: 'Filling', amount: 200.0, status: 'Paid', issued_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 103, patient_name: 'Alice Johnson', treatment_description: 'Root canal treatment', amount: 850.0, status: 'Unpaid', issued_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 104, patient_name: 'Bob Martin', treatment_description: 'Crown placement', amount: 450.0, status: 'Paid', issued_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 105, patient_name: 'Clara Oswald', treatment_description: 'Orthodontic consultation', amount: 75.0, status: 'Paid', issued_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 106, patient_name: 'David Tennant', treatment_description: 'Extraction (wisdom tooth)', amount: 300.0, status: 'Unpaid', issued_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 107, patient_name: 'Emma Brown', treatment_description: 'Teeth whitening', amount: 220.0, status: 'Paid', issued_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 108, patient_name: 'Frank Green', treatment_description: 'Periodontal therapy', amount: 560.0, status: 'Unpaid', issued_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString() },
   ]);
   const [patients] = useState([
     { id: 'p1', first_name: 'John', last_name: 'Doe' },
     { id: 'p2', first_name: 'Jane', last_name: 'Smith' },
+    { id: 'p3', first_name: 'Alice', last_name: 'Johnson' },
+    { id: 'p4', first_name: 'Bob', last_name: 'Martin' },
+    { id: 'p5', first_name: 'Clara', last_name: 'Oswald' },
+    { id: 'p6', first_name: 'David', last_name: 'Tennant' },
+    { id: 'p7', first_name: 'Emma', last_name: 'Brown' },
+    { id: 'p8', first_name: 'Frank', last_name: 'Green' },
   ]);
   const [treatments] = useState([
     { id: 't1', patient_name: 'John Doe', description: 'Teeth cleaning' },
     { id: 't2', patient_name: 'Jane Smith', description: 'Filling' },
+    { id: 't3', patient_name: 'Alice Johnson', description: 'Root canal treatment' },
+    { id: 't4', patient_name: 'Bob Martin', description: 'Crown placement' },
+    { id: 't5', patient_name: 'Clara Oswald', description: 'Orthodontic consultation' },
+    { id: 't6', patient_name: 'David Tennant', description: 'Extraction (wisdom tooth)' },
+    { id: 't7', patient_name: 'Emma Brown', description: 'Teeth whitening' },
+    { id: 't8', patient_name: 'Frank Green', description: 'Periodontal therapy' },
   ]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
@@ -193,6 +211,8 @@ export default function Invoices() {
               ))}
             </select>
           </div>
+          
+
           
           <Input
             label="Amount"
