@@ -1,60 +1,65 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
 import Table from '../components/Table';
+import {api} from '../utils/api'; 
+
 
 export default function Dashboard() {
-  const [stats] = useState({
-    totalPatients: 248,
-    todayAppointments: 12,
-    totalRevenue: 15840.50,
-    unpaidInvoices: 8,
+  const [stats, setStats] = useState({
+    totalPatients: 0,
+    todayAppointments: 0,
+    totalRevenue: 0,
+    unpaidInvoices: 0,
   });
 
-  const [recentAppointments] = useState([
-    {
-      id: 1,
-      patient_name: 'John Smith',
-      date: '2025-11-28',
-      time: '09:00 AM',
-      status: 'Confirmed',
-      reason: 'Cleaning'
-    },
-    {
-      id: 2,
-      patient_name: 'Sarah Johnson',
-      date: '2025-11-28',
-      time: '10:30 AM',
-      status: 'Confirmed',
-      reason: 'Root Canal'
-    },
-    {
-      id: 3,
-      patient_name: 'Michael Davis',
-      date: '2025-11-28',
-      time: '02:00 PM',
-      status: 'Pending',
-      reason: 'Checkup'
-    },
-    {
-      id: 4,
-      patient_name: 'Emma Wilson',
-      date: '2025-11-27',
-      time: '11:00 AM',
-      status: 'Completed',
-      reason: 'Filling'
-    },
-    {
-      id: 5,
-      patient_name: 'Robert Brown',
-      date: '2025-11-27',
-      time: '03:30 PM',
-      status: 'Cancelled',
-      reason: 'Extraction'
-    },
-  ]);
+  const [recentAppointments, setRecentAppointments] = useState([]);
+  const[loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => { 
+    const fetchData = async () => {
+      try{
+        setFetchError(null);
+        const[oatientsRes, appointmentsRes, invoicesRes]= await Promise.all([
+          api.getPatients(),
+          api.getAppointments(),
+          api.getInvoices(),
+
+        ]);
+        const today = new Date().toISOString().split('T')[0];
+        const appointments= appointmentsRes.results || [];
+        const invoices= invoicesRes.results || [];
+        const todayAppts= appointments.filter(apt=>apt.date===today);
+
+        const totalRevenue= invoices
+          .filter(inv=>inv.status==='Paid')
+          .reduce((sum, inv)=>sum + parseFloat(inv.amount||0), 0);
+        
+        const unpaidCount= invoices.filter(inv=>inv.status==='Unpaid').length;
+        setStats({
+          totalPatients: patientsRes.count || 0,
+          todayAppointments: todayAppts.length,
+          totalRevenue: totalRevenue.toFixed(2),
+          unpaidInvoices: unpaidCount,
+        });
+        
+        setRecentAppointments(appointments.slice(0,10));
+        setLoading(false);
+
+
+      }
+     catch(error)
+     {
+      console.error('Error fetching dashboard data:', error);
+      setFetchError(error.message||'Failed to load dashboard data.');
+      setLoading(false);
+     }
+    };
+    fetchData();
+  }, []);
 
   const columns = [
     { header: 'Patient', accessor: 'patient_name' },
@@ -76,6 +81,16 @@ export default function Dashboard() {
     { header: 'Reason', accessor: 'reason' },
   ];
 
+  if(loading){
+    return(
+      <div className='min-h-screen'>
+        <Navbar title="Dashboard" />
+        <div className='p-8-center'>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen">
       <Navbar title="Dashboard" />
