@@ -17,12 +17,12 @@ export default function Dashboard() {
 
   const [recentAppointments, setRecentAppointments] = useState([]);
   const[loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => { 
     const fetchData = async () => {
       try {
-        setError(null);
+        setFetchError(null);
         const [patientsRes, appointmentsRes, invoicesRes] = await Promise.all([
           patients_api.getPatients(),
           appointments_api.getAppointments(),
@@ -61,6 +61,43 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
+     const handleRetry = async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const [patientsRes, appointmentsRes, invoicesRes] = await Promise.all([
+        patients_api.getPatients(),
+        appointments_api.getAppointments(),
+        invoices_api.getInvoices(),
+      ]);
+
+      const today = new Date().toISOString().split('T')[0];
+      const appointments = appointmentsRes.results || [];
+      const invoices = invoicesRes.results || [];
+      const todayAppts = appointments.filter(apt => apt.date === today);
+      
+      const totalRevenue = invoices
+        .filter(inv => inv.status === 'Paid')
+        .reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+
+      const unpaidCount = invoices.filter(inv => inv.status === 'Unpaid').length;
+
+      setStats({
+        totalPatients: patientsRes.count || 0,
+        todayAppointments: todayAppts.length,
+        totalRevenue: totalRevenue.toFixed(2),
+        unpaidInvoices: unpaidCount,
+      });
+
+      setRecentAppointments(appointments.slice(0, 5));
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setFetchError(error.message || 'Failed to fetch dashboard data');
+      setLoading(false);
+    }
+  };
+
   const columns = [
     { header: 'Patient', accessor: 'patient_name' },
     { header: 'Date', accessor: 'date' },
@@ -94,9 +131,19 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen">
       <Navbar title="Dashboard" />
-      
-      <div className="p-8">
-        {/* KPI Cards */}
+       <div className="p-8">
+        {fetchError && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <p className="font-semibold">Error loading dashboard data</p>
+            <p className="text-sm">{fetchError}</p>
+            <button 
+              onClick={handleRetry}
+              className="mt-2 text-sm underline hover:no-underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <div className="flex items-center justify-between">
