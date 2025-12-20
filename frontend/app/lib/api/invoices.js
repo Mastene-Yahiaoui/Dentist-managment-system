@@ -1,6 +1,6 @@
 import { API_BASE_URL, fetchWithErrorHandling, handleResponse, normalizeListResponse } from './client.js';
 
-export const invoices = {
+export const invoices_api = {
   async getInvoices() {
     const url = `${API_BASE_URL}/invoices/`;
     const res = await fetchWithErrorHandling(url);
