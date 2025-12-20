@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { truncateText } from '../lib/utils';
-import {api} from '../lib/api';
+import {patients_api, invoices_api, treatments_api} from '../lib/api';
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
 import Table from '../components/Table';
@@ -36,9 +36,9 @@ export default function Invoices() {
     try{
       setFetchError(null);
       const [invoicesData, patientsData, treatmentsData] = await Promise.all([
-        api.getInvoices(),
-        api.getPatients(),
-        api.getTreatments(),
+        invoices_api.getInvoices(),
+        patients_api.getPatients(),
+        treatments_api.getTreatments(),
       ]);
       setInvoices(invoicesData.results || []);
       setPatients(patientsData.results || []);
@@ -65,7 +65,7 @@ export default function Invoices() {
     setSubmitLoading(true);
     setError(null);
     try {
-       await api.createInvoice(formData);
+       await invoices_api.createInvoice(formData);
        setIsModalOpen(false);
        setFormData({ patient_id: '', treatment_id: '', amount: '', status: 'Unpaid' });
        fetchData();

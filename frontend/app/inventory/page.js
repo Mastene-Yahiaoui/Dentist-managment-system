@@ -7,7 +7,7 @@ import Table from '../components/Table';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
 import Input from '../components/Input';
-import {api} from '../lib/api';
+import {inventory_api} from '../lib/api';
 
 export default function Inventory() {
   const [inventory, setInventory] = useState([]);
@@ -30,7 +30,7 @@ export default function Inventory() {
   const fetchInventory = async ()=> {
     try{
       setFetchError(null);
-      const data = await api.getInventory();
+      const data = await inventory_api.getInventory();
       setInventory(data.results || []);
       setLoading(false);
     }
@@ -55,7 +55,7 @@ export default function Inventory() {
     setSubmitLoading(true);
     setError(null);
     try {
-      await api.createInventoryItem(formData);
+      await inventory_api.createInventoryItem(formData);
       setIsModalOpen(false);
       setFormData({ item: '', quantity: 0 });
       fetchInventory();
@@ -78,7 +78,7 @@ export default function Inventory() {
     setSubmitLoading(true);
     setError(null);
     try {
-      await api.updateInventoryItem(editingItem.id, formData);
+      await inventory_api.updateInventoryItem(editingItem.id, formData);
       setIsEditModalOpen(false);
       setEditingItem(null);
       setFormData({ item: '', quantity: 0 });
@@ -94,7 +94,7 @@ export default function Inventory() {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this item?')) return;
     try {
-      await api.deleteInventoryItem(id);
+      await inventory_api.deleteInventoryItem(id);
       fetchInventory();
     }
     catch(error){

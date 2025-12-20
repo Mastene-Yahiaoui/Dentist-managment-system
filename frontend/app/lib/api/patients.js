@@ -1,6 +1,6 @@
 import { API_BASE_URL, fetchWithErrorHandling, handleResponse, normalizeListResponse } from './client.js';
 
-export const patients = {
+export const patients_api = {
   async getPatients() {
     const url = `${API_BASE_URL}/patients/`;
     const res = await fetchWithErrorHandling(url);

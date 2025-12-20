@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
 import Table from '../components/Table';
-import {api} from '../utils/api'; 
+import { patients_api, appointments_api, invoices_api } from '../lib/api'; 
 
 
 export default function Dashboard() {
@@ -21,12 +21,12 @@ export default function Dashboard() {
 
   useEffect(() => { 
     const fetchData = async () => {
-      try{
-        setFetchError(null);
-        const[oatientsRes, appointmentsRes, invoicesRes]= await Promise.all([
-          api.getPatients(),
-          api.getAppointments(),
-          api.getInvoices(),
+      try {
+        setError(null);
+        const [patientsRes, appointmentsRes, invoicesRes] = await Promise.all([
+          patients_api.getPatients(),
+          appointments_api.getAppointments(),
+          invoices_api.getInvoices(),
 
         ]);
         const today = new Date().toISOString().split('T')[0];
