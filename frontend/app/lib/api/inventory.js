@@ -1,6 +1,6 @@
 import { API_BASE_URL, fetchWithErrorHandling, handleResponse, normalizeListResponse } from './client.js';
 
-export const inventory = {
+export const inventory_api = {
   async getInventory() {
     const url = `${API_BASE_URL}/inventory/`;
     const res = await fetchWithErrorHandling(url);

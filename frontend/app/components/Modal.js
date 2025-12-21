@@ -38,7 +38,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
           <div className={`${sizeClasses[size]} w-full`}>
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                <h3 className="text-lg font-semibold text-black">{title}</h3>
                 <button
                   onClick={onClose}
                   className="text-gray-400 hover:text-gray-500 focus:outline-none"

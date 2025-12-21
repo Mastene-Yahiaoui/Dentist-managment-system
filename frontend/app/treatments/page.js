@@ -294,7 +294,7 @@ export default function Treatments() {
               name="appointment_id"
               value={formData.appointment_id}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               <option value="">No appointment</option>
               {appointments.map(apt => (

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { truncateText } from '../lib/utils';
+import {patients_api, invoices_api, treatments_api} from '../lib/api';
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
 import Table from '../components/Table';
@@ -11,40 +12,15 @@ import Input from '../components/Input';
 import IconButton from '../components/IconButton';
 
 export default function Invoices() {
-  const [invoices, setInvoices] = useState([
-    { id: 101, patient_name: 'John Doe', treatment_description: 'Teeth cleaning', amount: 120.0, status: 'Unpaid', issued_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 102, patient_name: 'Jane Smith', treatment_description: 'Filling', amount: 200.0, status: 'Paid', issued_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 103, patient_name: 'Alice Johnson', treatment_description: 'Root canal treatment', amount: 850.0, status: 'Unpaid', issued_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 104, patient_name: 'Bob Martin', treatment_description: 'Crown placement', amount: 450.0, status: 'Paid', issued_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 105, patient_name: 'Clara Oswald', treatment_description: 'Orthodontic consultation', amount: 75.0, status: 'Paid', issued_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 106, patient_name: 'David Tennant', treatment_description: 'Extraction (wisdom tooth)', amount: 300.0, status: 'Unpaid', issued_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 107, patient_name: 'Emma Brown', treatment_description: 'Teeth whitening', amount: 220.0, status: 'Paid', issued_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 108, patient_name: 'Frank Green', treatment_description: 'Periodontal therapy', amount: 560.0, status: 'Unpaid', issued_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString() },
-  ]);
-  const [patients] = useState([
-    { id: 'p1', first_name: 'John', last_name: 'Doe' },
-    { id: 'p2', first_name: 'Jane', last_name: 'Smith' },
-    { id: 'p3', first_name: 'Alice', last_name: 'Johnson' },
-    { id: 'p4', first_name: 'Bob', last_name: 'Martin' },
-    { id: 'p5', first_name: 'Clara', last_name: 'Oswald' },
-    { id: 'p6', first_name: 'David', last_name: 'Tennant' },
-    { id: 'p7', first_name: 'Emma', last_name: 'Brown' },
-    { id: 'p8', first_name: 'Frank', last_name: 'Green' },
-  ]);
-  const [treatments] = useState([
-    { id: 't1', patient_name: 'John Doe', description: 'Teeth cleaning' },
-    { id: 't2', patient_name: 'Jane Smith', description: 'Filling' },
-    { id: 't3', patient_name: 'Alice Johnson', description: 'Root canal treatment' },
-    { id: 't4', patient_name: 'Bob Martin', description: 'Crown placement' },
-    { id: 't5', patient_name: 'Clara Oswald', description: 'Orthodontic consultation' },
-    { id: 't6', patient_name: 'David Tennant', description: 'Extraction (wisdom tooth)' },
-    { id: 't7', patient_name: 'Emma Brown', description: 'Teeth whitening' },
-    { id: 't8', patient_name: 'Frank Green', description: 'Periodontal therapy' },
-  ]);
+  const [invoices, setInvoices] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [treatments, setTreatments] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [fetchError, setFetchError] = useState(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
@@ -58,7 +34,34 @@ export default function Invoices() {
     amount: '',
     status: 'Unpaid',
   });
-  
+
+  useEffect(()=>{
+    fetchData();
+  }, []);
+
+
+  const fetchData =async ()=>{
+    try{
+      setFetchError(null);
+      const [invoicesData, patientsData, treatmentsData] = await Promise.all([
+        invoices_api.getInvoices(),
+        patients_api.getPatients(),
+        treatments_api.getTreatments(),
+      ]);
+      setInvoices(invoicesData.results || []);
+      setPatients(patientsData.results || []);
+      setTreatments(treatmentsData.results || []);
+      setLoading(false);
+    }
+    catch(error){
+      console.error('Error fetching data:', error);
+      setFetchError(error.message || 'Error fetching data');
+      setInvoices([]);
+      setPatients([]);
+      setTreatments([]);
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -70,22 +73,15 @@ export default function Invoices() {
     setSubmitLoading(true);
     setError(null);
     try {
-      const patient = patients.find(p => p.id === formData.patient_id);
-      const treatment = treatments.find(t => t.id === formData.treatment_id);
-      const newInvoice = {
-        id: Date.now(),
-        patient_name: patient ? `${patient.first_name} ${patient.last_name}` : 'Unknown',
-        treatment_description: treatment ? treatment.description : '',
-        amount: parseFloat(formData.amount) || 0,
-        status: formData.status,
-        issued_at: new Date().toISOString(),
-      };
-      setInvoices(prev => [newInvoice, ...prev]);
-      setIsModalOpen(false);
-      setFormData({ patient_id: '', treatment_id: '', amount: '', status: 'Unpaid' });
-    } catch (err) {
-      console.error('Error creating invoice (UI-only):', err);
-      setError('Failed to create invoice');
+       await invoices_api.createInvoice(formData);
+       setIsModalOpen(false);
+       setFormData({ patient_id: '', treatment_id: '', amount: '', status: 'Unpaid' });
+       fetchData();
+    }
+
+     catch (err) {
+      console.error('Error creating invoice', err);
+      setError(err.message ||'Failed to create invoice');
     } finally {
       setSubmitLoading(false);
     }
@@ -194,6 +190,16 @@ export default function Invoices() {
     )},
   ];
 
+   if (loading) {
+    return (
+      <div className="min-h-screen">
+        <Navbar title="Invoices" />
+        <div className="p-8">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
 
   return (
@@ -201,6 +207,18 @@ export default function Invoices() {
       <Navbar title="Invoices" />
       
       <div className="p-8">
+        {fetchError&&(
+           <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <p className="font-semibold">Error loading invoices</p>
+            <p className="text-sm">{fetchError}</p>
+            <button 
+              onClick={fetchData}
+              className="mt-2 text-sm underline hover:no-underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
 
         <Card>
           <div className="flex justify-between items-center mb-6">
@@ -296,7 +314,7 @@ export default function Invoices() {
               value={formData.patient_id}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               <option value="">Select a patient</option>
               {patients.map(patient => (
@@ -308,7 +326,7 @@ export default function Invoices() {
           </div>
           
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-black mb-2">
               Treatment <span className="text-red-500">*</span>
             </label>
             <select
@@ -316,7 +334,7 @@ export default function Invoices() {
               value={formData.treatment_id}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               <option value="">Select a treatment</option>
               {treatments.map(treatment => (
@@ -348,7 +366,7 @@ export default function Invoices() {
               value={formData.status}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               <option value="Unpaid">Unpaid</option>
               <option value="Paid">Paid</option>

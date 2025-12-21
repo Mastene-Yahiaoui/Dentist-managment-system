@@ -1,6 +1,6 @@
 import { API_BASE_URL, fetchWithErrorHandling, handleResponse, normalizeListResponse } from './client.js';
 
-export const appointments = {
+export const appointments_api = {
   async getAppointments() {
     const url = `${API_BASE_URL}/appointments/`;
     const res = await fetchWithErrorHandling(url);

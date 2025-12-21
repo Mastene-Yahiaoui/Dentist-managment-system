@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import {useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Card from '../components/Card';
 import Table from '../components/Table';
@@ -11,16 +11,13 @@ import IconButton from '../components/IconButton';
 import {inventory_api} from '../lib/api';
 
 export default function Inventory() {
-  // Dummy/local UI-only data
-  const [inventory, setInventory] = useState([
-    { id: 1, item: 'Gloves', quantity: 200, status: 'In stock' },
-    { id: 2, item: 'Toothpaste', quantity: 20, status: 'Low stock' },
-    { id: 3, item: 'Anesthetic', quantity: 0, status: 'Out of stock' },
-  ]);
+  const [inventory, setInventory] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [error, setError] = useState(null);
+  const [fetchError, setFetchError] = useState(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -31,7 +28,24 @@ export default function Inventory() {
     item: '',
     quantity: 0,
   });
-  // No backend fetching in UI-only mode — inventory is local dummy data above.
+ 
+  useEffect(() => {fetchInventory();},
+   []);
+
+  const fetchInventory = async ()=> {
+    try{
+      setFetchError(null);
+      const data = await inventory_api.getInventory();
+      setInventory(data.results || []);
+      setLoading(false);
+    }
+    catch(error){
+      console.error('Error fetching inventory:', error);
+      setFetchError(error.message || 'Error fetching inventory');
+      setInventory([]);
+      setLoading(false);
+    }
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -46,16 +60,10 @@ export default function Inventory() {
     setSubmitLoading(true);
     setError(null);
     try {
-      // Create locally (UI-only)
-      const newItem = {
-        id: Date.now(),
-        item: formData.item,
-        quantity: Number(formData.quantity) || 0,
-        status: (Number(formData.quantity) || 0) > 50 ? 'In stock' : (Number(formData.quantity) > 0 ? 'Low stock' : 'Out of stock'),
-      };
-      setInventory(prev => [newItem, ...prev]);
+      await inventory_api.createInventoryItem(formData);
       setIsModalOpen(false);
       setFormData({ item: '', quantity: 0 });
+      fetchInventory();
     } catch (error) {
       console.error('Error creating inventory item:', error);
       setError(error.message || 'Failed to create inventory item');
@@ -75,16 +83,11 @@ export default function Inventory() {
     setSubmitLoading(true);
     setError(null);
     try {
-      // Update locally (UI-only)
-      setInventory(prev => prev.map(it => it.id === editingItem.id ? {
-        ...it,
-        item: formData.item,
-        quantity: Number(formData.quantity) || 0,
-        status: (Number(formData.quantity) || 0) > 50 ? 'In stock' : (Number(formData.quantity) > 0 ? 'Low stock' : 'Out of stock'),
-      } : it));
+      await inventory_api.updateInventoryItem(editingItem.id, formData);
       setIsEditModalOpen(false);
       setEditingItem(null);
       setFormData({ item: '', quantity: 0 });
+      fetchInventory();
     } catch (error) {
       console.error('Error updating inventory item:', error);
       setError(error.message || 'Failed to update inventory item');
@@ -198,14 +201,34 @@ export default function Inventory() {
     },
   ];
 
-  // UI-only: no loading state
+   if(loading) {
+    return (
+      <div className="min-h-screen">
+        <Navbar title="Inventory" />
+        <div className="p-8">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
       <Navbar title="Inventory" />
       
       <div className="p-8">
-        {/* UI-only mode with dummy data */}
+         {fetchError && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <p className="font-semibold">Error loading inventory</p>
+            <p className="text-sm">{fetchError}</p>
+            <button 
+              onClick={fetchInventory}
+              className="mt-2 text-sm underline hover:no-underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
 
         <Card>
           <div className="flex justify-between items-center mb-6">
@@ -240,7 +263,7 @@ export default function Inventory() {
           </div>
           
           {filteredInventory.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No inventory items found.</p>
+            <p className="text-black text-center py-8">No inventory items found.</p>
           ) : (
             <Table columns={columns} data={filteredInventory} />
           )}
