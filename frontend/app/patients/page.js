@@ -177,7 +177,6 @@ export default function Patients() {
     { header: 'Gender', render: (row) => (row.gender === 'M' ? 'Male' : row.gender === 'F' ? 'Female' : row.gender || '-') },
     { header: 'Birth Date', accessor: 'birth_date' },
     { header: 'Phone', accessor: 'phone' },
-    { header: 'Email', accessor: 'email' },
     { header: 'Actions', render: (row) => (
       <div className="flex items-center gap-1">
         <IconButton
