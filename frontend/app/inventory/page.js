@@ -198,7 +198,7 @@ export default function Inventory() {
           </div>
           
           {filteredInventory.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No inventory items found.</p>
+            <p className="text-black text-center py-8">No inventory items found.</p>
           ) : (
             <Table columns={columns} data={filteredInventory} />
           )}

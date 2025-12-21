@@ -10,6 +10,7 @@ from .views import (
     TreatmentViewSet,
     InvoiceViewSet,
     InventoryViewSet,
+    XraysViewSet,
 )
 
 logger = logging.getLogger(__name__)
@@ -80,6 +81,7 @@ router.register(r'appointments', AppointmentViewSet, basename='appointment')
 router.register(r'treatments', TreatmentViewSet, basename='treatment')
 router.register(r'invoices', InvoiceViewSet, basename='invoice')
 router.register(r'inventory', InventoryViewSet, basename='inventory')
+router.register(r'xrays', XraysViewSet, basename='xray')
 
 urlpatterns = [
     path('health/', health_check, name='health-check'),
