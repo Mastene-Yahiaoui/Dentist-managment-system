@@ -31,6 +31,7 @@ export default function Dashboard() {
         ]);
         const today = new Date().toISOString().split('T')[0];
         const appointments= appointmentsRes.results || [];
+        const patients= patientsRes.results || [];
         const invoices= invoicesRes.results || [];
         const todayAppts= appointments.filter(apt=>apt.date===today);
 
@@ -46,7 +47,16 @@ export default function Dashboard() {
           unpaidInvoices: unpaidCount,
         });
         
-        setRecentAppointments(appointments.slice(0,10));
+        // Map appointments with patient names
+        const appointmentsWithPatientNames = appointments.map(apt => {
+          const patient = patients.find(p => p.id === apt.patient_id);
+          return {
+            ...apt,
+            patient_name: patient ? `${patient.first_name} ${patient.last_name}` : 'Unknown'
+          };
+        });
+        
+        setRecentAppointments(appointmentsWithPatientNames.slice(0,10));
         setLoading(false);
 
 
@@ -73,6 +83,7 @@ export default function Dashboard() {
 
       const today = new Date().toISOString().split('T')[0];
       const appointments = appointmentsRes.results || [];
+      const patients = patientsRes.results || [];
       const invoices = invoicesRes.results || [];
       const todayAppts = appointments.filter(apt => apt.date === today);
       
@@ -89,7 +100,16 @@ export default function Dashboard() {
         unpaidInvoices: unpaidCount,
       });
 
-      setRecentAppointments(appointments.slice(0, 5));
+      // Map appointments with patient names
+      const appointmentsWithPatientNames = appointments.map(apt => {
+        const patient = patients.find(p => p.id === apt.patient_id);
+        return {
+          ...apt,
+          patient_name: patient ? `${patient.first_name} ${patient.last_name}` : 'Unknown'
+        };
+      });
+
+      setRecentAppointments(appointmentsWithPatientNames.slice(0, 5));
       setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -167,7 +187,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Revenue</p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">${stats.totalRevenue}</p>
+                <p className="text-3xl font-bold text-gray-800 mt-2">DZD {stats.totalRevenue}</p>
               </div>
             </div>
           </Card>
