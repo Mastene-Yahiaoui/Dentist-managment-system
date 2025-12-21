@@ -278,6 +278,8 @@ export default function Treatments() {
               onChange={handleInputChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            >
+              <option value="">Select a patient</option>
               {patients.map(patient => (
                 <option key={patient.id} value={patient.id}>
                   {patient.first_name} {patient.last_name}
