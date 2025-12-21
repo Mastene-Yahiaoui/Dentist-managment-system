@@ -10,7 +10,7 @@ from .base import BaseSupabaseService, SupabaseServiceError
 logger = logging.getLogger(__name__)
 
 # Storage bucket name for X-ray images
-XRAY_BUCKET = 'xrays'
+XRAY_BUCKET = 'x_rays'
 
 
 class XrayService(BaseSupabaseService):
@@ -127,15 +127,62 @@ class XrayService(BaseSupabaseService):
                 path=storage_path,
                 expires_in=expires_in
             )
-            if response and isinstance(response, dict):
-                if 'signedURL' in response:
-                    return str(response['signedURL'])
-                elif 'signedUrl' in response:
-                    return str(response['signedUrl'])
-            logger.warning(f"Could not generate signed URL for {storage_path}")
-            return ''
+            logger.info(f"Signed URL response for {storage_path}: {response} (type: {type(response)})")
+            
+            # Handle different response formats from supabase-py
+            if response:
+                # If response is a string URL directly
+                if isinstance(response, str) and response.startswith('http'):
+                    return response
+                # If response is a dict with signedURL or signedUrl
+                if isinstance(response, dict):
+                    if 'signedURL' in response:
+                        return str(response['signedURL'])
+                    elif 'signedUrl' in response:
+                        return str(response['signedUrl'])
+                    elif 'signed_url' in response:
+                        return str(response['signed_url'])
+                # If response has a signedUrl attribute (object)
+                if hasattr(response, 'signed_url'):
+                    return str(response.signed_url) # type: ignore
+                if hasattr(response, 'signedUrl'):
+                    return str(response.signedUrl) # type: ignore
+                if hasattr(response, 'signedURL'):
+                    return str(response.signedURL) # type: ignore
+            
+            # Fallback to public URL if signed URL fails
+            logger.warning(f"Could not extract signed URL for {storage_path}, using public URL")
+            return self._get_public_url(storage_path)
         except Exception as e:
             logger.error(f"Error generating signed URL: {e}")
+            # Fallback to public URL
+            return self._get_public_url(storage_path)
+    
+    def _get_public_url(self, storage_path: str) -> str:
+        """Generate a public URL for the image (for public buckets)."""
+        try:
+            response = self.client.storage.from_(XRAY_BUCKET).get_public_url(storage_path)
+            logger.info(f"Public URL response for {storage_path}: {response} (type: {type(response)})")
+            
+            if response:
+                # If it's already a string URL
+                if isinstance(response, str) and response.startswith('http'):
+                    return response
+                # If it's a dict
+                if isinstance(response, dict) and 'publicUrl' in response:
+                    return str(response['publicUrl']) # type: ignore
+                if isinstance(response, dict) and 'publicURL' in response:
+                    return str(response['publicURL']) # type: ignore
+                # If it has an attribute
+                if hasattr(response, 'public_url'):
+                    return str(response.public_url) # type: ignore
+                # Last resort - convert to string
+                url_str = str(response)
+                if url_str.startswith('http'):
+                    return url_str
+            return ''
+        except Exception as e:
+            logger.error(f"Error generating public URL: {e}")
             return ''
     
     def get_patient_images(self, patient_id: str) -> List[Dict[str, Any]]:

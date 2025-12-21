@@ -60,7 +60,9 @@ export default function PatientDetail() {
         setInvoices((invoicesData.results || []).filter(inv => 
           String(inv.patient) === String(patientId) || String(inv.patient_id) === String(patientId)
         ));
-        setXrays(xraysData.results || []);
+        // Set xrays - handle both array and object response formats
+        const xrayList = xraysData.results || xraysData || [];
+        setXrays(xrayList);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching patient data:', error);
@@ -399,29 +401,36 @@ export default function PatientDetail() {
               <p className="text-black text-center py-4">No images uploaded yet.</p>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {xrays.map((xray) => (
-                  <div
-                    key={xray.id}
-                    className="relative group rounded-lg overflow-hidden border border-gray-200 bg-gray-100"
-                  >
-                    {/* Thumbnail */}
+                {xrays.map((xray) => {
+                  // Get the best available URL - prefer signed_url, fallback to image_url
+                  const imageUrl = xray.signed_url || xray.image_url || '';
+                  
+                  return (
                     <div
-                      className="aspect-square cursor-pointer"
+                      key={xray.id}
+                      className="relative group rounded-lg overflow-hidden border border-gray-200 bg-white cursor-pointer"
                       onClick={() => setPreviewImage(xray)}
                     >
-                      <img
-                        src={xray.signed_url || xray.image_url}
-                        alt={xray.image_name || 'X-ray image'}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNlNWU3ZWIiLz48dGV4dCB4PSI1MCIgeT0iNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzZiNzI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlPC90ZXh0Pjwvc3ZnPg==';
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Overlay with info */}
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-end">
-                      <div className="w-full p-2 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Thumbnail */}
+                      <div className="aspect-square bg-gray-100 overflow-hidden relative z-0">
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={xray.image_name || 'X-ray image'}
+                            className="w-full h-full object-cover block"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-sm">
+                            No image
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Overlay with info on hover only */}
+                      <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <p className="text-white text-xs truncate">
                           {xray.description || xray.image_name || 'Unnamed'}
                         </p>
@@ -429,23 +438,23 @@ export default function PatientDetail() {
                           <p className="text-gray-300 text-xs">{xray.date_taken}</p>
                         )}
                       </div>
+                      
+                      {/* Delete button - needs pointer-events-auto to be clickable */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteXrayId(xray.id);
+                        }}
+                        className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700 z-10"
+                        title="Delete image"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
                     </div>
-                    
-                    {/* Delete button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteXrayId(xray.id);
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
-                      title="Delete image"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -457,13 +466,17 @@ export default function PatientDetail() {
             isOpen={true}
             onClose={() => setPreviewImage(null)}
             title={previewImage.description || previewImage.image_name || 'Image Preview'}
+            size="lg"
           >
             <div className="space-y-4">
-              <div className="flex justify-center bg-gray-100 rounded-lg p-2">
+              <div className="flex justify-center bg-gray-100 rounded-lg p-2 min-h-[200px]">
                 <img
-                  src={previewImage.signed_url || previewImage.image_url}
+                  src={previewImage.signed_url || previewImage.image_url || ''}
                   alt={previewImage.image_name || 'X-ray image'}
                   className="max-w-full max-h-[60vh] object-contain"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -479,6 +492,12 @@ export default function PatientDetail() {
                   <p className="text-gray-500">Description</p>
                   <p className="text-black font-medium">{previewImage.description || 'N/A'}</p>
                 </div>
+                {previewImage.image_type && (
+                  <div className="col-span-2">
+                    <p className="text-gray-500">Image Type</p>
+                    <p className="text-black font-medium">{previewImage.image_type}</p>
+                  </div>
+                )}
               </div>
               <div className="flex justify-end gap-2">
                 <a
