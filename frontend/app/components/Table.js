@@ -7,7 +7,7 @@ export default function Table({ columns, data, onRowClick }) {
             {columns.map((column, index) => (
               <th
                 key={index}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider"
               >
                 {column.header}
               </th>
@@ -31,7 +31,7 @@ export default function Table({ columns, data, onRowClick }) {
             ))
           ) : (
             <tr>
-              <td colSpan={columns.length} className="px-6 py-4 text-center text-sm text-gray-500">
+              <td colSpan={columns.length} className="px-6 py-4 text-center text-sm text-black">
                 No data available
               </td>
             </tr>

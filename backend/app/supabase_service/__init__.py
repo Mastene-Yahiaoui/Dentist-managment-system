@@ -24,6 +24,7 @@ from .appointments import AppointmentService
 from .treatments import TreatmentService
 from .invoices import InvoiceService
 from .inventory import InventoryService
+from .xrays import XrayService
 
 
 # Lazy singleton instances - created once when first accessed
@@ -32,6 +33,7 @@ _appointment_service = None
 _treatment_service = None
 _invoice_service = None
 _inventory_service = None
+_xray_service = None
 
 
 def get_patient_service():
@@ -69,6 +71,13 @@ def get_inventory_service():
     return _inventory_service
 
 
+def get_xray_service():
+    global _xray_service
+    if _xray_service is None:
+        _xray_service = XrayService()
+    return _xray_service
+
+
 class _LazyService:
     
     def __init__(self, getter):
@@ -87,6 +96,7 @@ appointment_service = _LazyService(get_appointment_service)
 treatment_service = _LazyService(get_treatment_service)
 invoice_service = _LazyService(get_invoice_service)
 inventory_service = _LazyService(get_inventory_service)
+xray_service = _LazyService(get_xray_service)
 
 
 __all__ = [
@@ -100,14 +110,17 @@ __all__ = [
     'TreatmentService',
     'InvoiceService',
     'InventoryService',
+    'XrayService',
     'get_patient_service',
     'get_appointment_service',
     'get_treatment_service',
     'get_invoice_service',
     'get_inventory_service',
+    'get_xray_service',
     'patient_service',
     'appointment_service',
     'treatment_service',
     'invoice_service',
     'inventory_service',
+    'xray_service',
 ]

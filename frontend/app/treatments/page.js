@@ -111,7 +111,7 @@ export default function Treatments() {
           </div>
           
           {treatments.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No treatments found.</p>
+            <p className="text-black text-center py-8">No treatments found.</p>
           ) : (
             <Table columns={columns} data={treatments} />
           )}
@@ -134,9 +134,7 @@ export default function Treatments() {
               value={formData.patient_id}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select a patient</option>
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               {patients.map(patient => (
                 <option key={patient.id} value={patient.id}>
                   {patient.first_name} {patient.last_name}
@@ -153,7 +151,7 @@ export default function Treatments() {
               name="appointment_id"
               value={formData.appointment_id}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               <option value="">No appointment</option>
               {appointments.map(apt => (

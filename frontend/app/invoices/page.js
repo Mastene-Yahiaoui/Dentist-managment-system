@@ -171,7 +171,7 @@ export default function Invoices() {
           </div>
           
           {filteredInvoices.length === 0 && !fetchError ? (
-            <p className="text-gray-500 text-center py-8">No invoices found.</p>
+            <p className="text-black text-center py-8">No invoices found.</p>
           ) : (
             <Table columns={columns} data={filteredInvoices} />
           )}
@@ -199,7 +199,7 @@ export default function Invoices() {
               value={formData.patient_id}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               <option value="">Select a patient</option>
               {patients.map(patient => (
@@ -211,7 +211,7 @@ export default function Invoices() {
           </div>
           
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-black mb-2">
               Treatment <span className="text-red-500">*</span>
             </label>
             <select
@@ -219,7 +219,7 @@ export default function Invoices() {
               value={formData.treatment_id}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               <option value="">Select a treatment</option>
               {treatments.map(treatment => (
@@ -251,7 +251,7 @@ export default function Invoices() {
               value={formData.status}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               <option value="Unpaid">Unpaid</option>
               <option value="Paid">Paid</option>

@@ -207,3 +207,31 @@ class InventorySerializer(serializers.Serializer):
                 data['status'] = compute_inventory_status(data.get('quantity', 0))
             return data
         return super().to_representation(instance)
+
+
+class XraySerializer(serializers.Serializer):
+    """Serializer for patient X-ray/scan images."""
+    id = serializers.CharField(read_only=True)
+    patient_id = serializers.CharField(required=True)
+    image_url = serializers.CharField(read_only=True)
+    image_name = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+    image_type = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    date_taken = serializers.DateField(required=False, allow_null=True)
+    signed_url = serializers.CharField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+    
+    def to_representation(self, instance):
+        if isinstance(instance, dict):
+            data = instance.copy()
+            for field in ['created_at', 'updated_at']:
+                if field in data and data[field] is not None:
+                    if hasattr(data[field], 'isoformat'):
+                        data[field] = data[field].isoformat()
+            for field in ['date_taken']:
+                if field in data and data[field] is not None:
+                    if hasattr(data[field], 'isoformat'):
+                        data[field] = data[field].isoformat()
+            return data
+        return super().to_representation(instance)

@@ -6,6 +6,7 @@ from .appointments_viewset import AppointmentViewSet
 from .treatments_viewset import TreatmentViewSet
 from .invoices_viewset import InvoiceViewSet
 from .inventory_viewset import InventoryViewSet
+from .xrays_viewset import XraysViewSet
 
 __all__ = [
     'PatientViewSet',
@@ -13,4 +14,5 @@ __all__ = [
     'TreatmentViewSet',
     'InvoiceViewSet',
     'InventoryViewSet',
+    'XraysViewSet',
 ]

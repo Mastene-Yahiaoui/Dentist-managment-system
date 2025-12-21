@@ -185,7 +185,7 @@ export default function Dashboard() {
         {/* Recent Appointments */}
         <Card title="Recent Appointments">
           {recentAppointments.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">No recent appointments.</p>
+            <p className="text-black text-center py-4">No recent appointments.</p>
           ) : (
             <Table columns={columns} data={recentAppointments} />
           )}
