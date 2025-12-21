@@ -7,6 +7,8 @@ import Table from '../components/Table';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
 import Input from '../components/Input';
+import IconButton from '../components/IconButton';
+import {inventory_api} from '../lib/api';
 
 export default function Inventory() {
   // Dummy/local UI-only data
@@ -21,6 +23,10 @@ export default function Inventory() {
   const [error, setError] = useState(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [isConfirmDeleteAllOpen, setIsConfirmDeleteAllOpen] = useState(false);
   const [formData, setFormData] = useState({
     item: '',
     quantity: 0,
@@ -88,9 +94,44 @@ export default function Inventory() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
-    // Delete locally (UI-only)
-    setInventory(prev => prev.filter(it => it.id !== id));
+    setConfirmDeleteId(id);
+    setIsConfirmDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDeleteId) return;
+    setDeleteLoading(true);
+    try {
+      await inventory_api.deleteInventoryItem(confirmDeleteId);
+      setInventory(prev => prev.filter(item => item.id !== confirmDeleteId));
+      setIsConfirmDeleteOpen(false);
+      setConfirmDeleteId(null);
+    } catch (error) {
+      console.error('Error deleting inventory item:', error);
+      setError(error.message || 'Failed to delete inventory item');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    setIsConfirmDeleteAllOpen(true);
+  };
+
+  const handleConfirmDeleteAll = async () => {
+    setDeleteLoading(true);
+    try {
+      for (const item of inventory) {
+        await inventory_api.deleteInventoryItem(item.id);
+      }
+      setInventory([]);
+      setIsConfirmDeleteAllOpen(false);
+    } catch (error) {
+      console.error('Error deleting all inventory items:', error);
+      setError(error.message || 'Failed to delete all inventory items');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const filteredInventory = inventory.filter(item =>
@@ -124,19 +165,34 @@ export default function Inventory() {
     {
       header: 'Actions',
       render: (row) => (
-        <div className="flex space-x-2">
-          <button
-            onClick={(e) => { e.stopPropagation(); handleEditClick(row); }}
-            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+        <div className="flex items-center gap-1">
+          <IconButton
+            ariaLabel="Edit item"
+            title="Edit item"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditClick(row);
+            }}
           >
-            Edit
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); handleDelete(row.id); }}
-            className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/>
+              <path d="M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+            </svg>
+          </IconButton>
+          <IconButton
+            ariaLabel="Delete item"
+            title="Delete item"
+            variant="danger-ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(row.id);
+            }}
           >
-            Delete
-          </button>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              <path d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h14a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1H9zm-3 6h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z" />
+            </svg>
+          </IconButton>
         </div>
       )
     },
@@ -153,18 +209,34 @@ export default function Inventory() {
 
         <Card>
           <div className="flex justify-between items-center mb-6">
-            <div className="flex-1 max-w-md">
+            <h2 className="text-xl font-semibold text-black">All Inventory Items</h2>
+            <div className="flex gap-3 items-center">
               <input
                 type="text"
                 placeholder="Search items..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               />
+              <div className="flex gap-3">
+                <Button onClick={() => setIsModalOpen(true)}>
+                  + Add Item
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-red-300 text-red-700 hover:bg-red-600 hover:text-white hover:border-red-600"
+                  onClick={handleDeleteAll}
+                  disabled={inventory.length === 0}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                      <path d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h14a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1H9zm-3 6h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z" />
+                    </svg>
+                    Delete All
+                  </span>
+                </Button>
+              </div>
             </div>
-            <Button onClick={() => setIsModalOpen(true)}>
-              + Add Item
-            </Button>
           </div>
           
           {filteredInventory.length === 0 ? (
@@ -251,6 +323,46 @@ export default function Inventory() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Confirm Delete Single */}
+      <Modal
+        isOpen={isConfirmDeleteOpen}
+        onClose={() => setIsConfirmDeleteOpen(false)}
+        title="Delete Item"
+        size="sm"
+      >
+        <p className="mb-4 text-black">Are you sure you want to delete this item? This action cannot be undone.</p>
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={() => setIsConfirmDeleteOpen(false)} disabled={deleteLoading}>Cancel</Button>
+          <Button
+            variant="danger"
+            onClick={handleConfirmDelete}
+            disabled={deleteLoading}
+          >
+            {deleteLoading ? 'Deleting...' : 'Delete'}
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Confirm Delete All */}
+      <Modal
+        isOpen={isConfirmDeleteAllOpen}
+        onClose={() => setIsConfirmDeleteAllOpen(false)}
+        title="Delete All Items"
+        size="md"
+      >
+        <p className="mb-4 text-black">This will permanently delete all inventory items. This action is irreversible. Do you want to proceed?</p>
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={() => setIsConfirmDeleteAllOpen(false)} disabled={deleteLoading}>Cancel</Button>
+          <Button
+            variant="danger"
+            onClick={handleConfirmDeleteAll}
+            disabled={deleteLoading || inventory.length === 0}
+          >
+            {deleteLoading ? 'Deleting...' : 'Delete All'}
+          </Button>
+        </div>
       </Modal>
     </div>
   );
