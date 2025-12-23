@@ -10,8 +10,11 @@ class TreatmentService(BaseSupabaseService):
     
     def _convert_decimal_in_result(self, treatment: Dict[str, Any]) -> Dict[str, Any]:
         if treatment and 'cost' in treatment and treatment['cost'] is not None:
-            if isinstance(treatment['cost'], Decimal):
-                treatment['cost'] = float(treatment['cost'])
+            if isinstance(treatment['cost'], (Decimal, float, int)):
+                # Convert to Decimal first to preserve precision, then to string
+                if not isinstance(treatment['cost'], Decimal):
+                    treatment['cost'] = Decimal(str(treatment['cost']))
+                treatment['cost'] = str(treatment['cost'])
         return treatment
     
     def _convert_decimals_in_results(self, treatments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
