@@ -297,14 +297,20 @@ export default function Treatments() {
               value={formData.appointment_id}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              disabled={!formData.patient_id}
             >
               <option value="">No appointment</option>
-              {appointments.map(apt => (
+              {appointments
+                .filter(apt => apt.patient_id === formData.patient_id)
+                .map(apt => (
                 <option key={apt.id} value={apt.id}>
                   {apt.patient_name} - {apt.date} {apt.time}
                 </option>
               ))}
             </select>
+            {!formData.patient_id && (
+              <p className="text-sm text-gray-500 mt-1">Select a patient first</p>
+            )}
           </div>
           
           <div className="mb-4">
@@ -402,14 +408,20 @@ export default function Treatments() {
               value={formData.appointment_id}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              disabled={!formData.patient_id}
             >
               <option value="">No appointment</option>
-              {appointments.map(apt => (
+              {appointments
+                .filter(apt => apt.patient_id === formData.patient_id)
+                .map(apt => (
                 <option key={apt.id} value={apt.id}>
                   {apt.patient_name} - {apt.date} {apt.time}
                 </option>
               ))}
             </select>
+            {!formData.patient_id && (
+              <p className="text-sm text-gray-500 mt-1">Select a patient first</p>
+            )}
           </div>
           
           <div className="mb-4">

@@ -24,6 +24,8 @@ export default function Appointments() {
   const [isConfirmDeleteAllOpen, setIsConfirmDeleteAllOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [editingAppointmentId, setEditingAppointmentId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterDate, setFilterDate] = useState('');
   const [formData, setFormData] = useState({
     patient_id: '',
     date: '',
@@ -66,9 +68,9 @@ export default function Appointments() {
     setSubmitLoading(true);
     setError(null);
     try {
-      console.log('Submitting appointment data:', formData);
+
       const response = await api.createAppointment(formData);
-      console.log('Appointment created successfully:', response);
+
       setIsModalOpen(false);
       setFormData({
         patient_id: '',
@@ -80,8 +82,25 @@ export default function Appointments() {
       });
       fetchData();
     } catch (error) {
-      console.error('Error creating appointment:', error);
-      setError(error.message || 'Failed to create appointment');
+      let errorMessage = 'Failed to create appointment';
+      
+      if (error.message) {
+        const jsonMatch = error.message.match(/- ({.*})/);
+        if (jsonMatch) {
+          try {
+            const errorData = JSON.parse(jsonMatch[1]);
+            if (errorData.non_field_errors && Array.isArray(errorData.non_field_errors)) {
+              errorMessage = errorData.non_field_errors[0];
+            }
+          } catch {
+            errorMessage = error.message;
+          }
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setSubmitLoading(false);
     }
@@ -118,8 +137,28 @@ export default function Appointments() {
       });
       fetchData();
     } catch (error) {
-      console.error('Error updating appointment:', error);
-      setError(error.message || 'Failed to update appointment');
+      // Extract error message from the error response
+      let errorMessage = 'Failed to update appointment';
+      
+      if (error.message) {
+        // Check if message contains JSON error details (format: "Error message: 400 - {...}")
+        const jsonMatch = error.message.match(/- ({.*})/);
+        if (jsonMatch) {
+          try {
+            const errorData = JSON.parse(jsonMatch[1]);
+            if (errorData.non_field_errors && Array.isArray(errorData.non_field_errors)) {
+              errorMessage = errorData.non_field_errors[0];
+            }
+          } catch {
+            // If parsing fails, use the original message
+            errorMessage = error.message;
+          }
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setSubmitLoading(false);
     }
@@ -180,6 +219,21 @@ export default function Appointments() {
     )},
   ];
 
+  // Filter appointments based on search term and date
+  const appointmentsWithPatientNames = appointments.map(apt => {
+    const patient = patients.find(p => p.id === apt.patient_id);
+    return {
+      ...apt,
+      patient_name: patient ? `${patient.first_name} ${patient.last_name}` : 'Unknown',
+    };
+  });
+
+  const filteredAppointments = appointmentsWithPatientNames.filter(apt => {
+    const matchesSearch = apt.patient_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDate = filterDate === '' || apt.date === filterDate;
+    return matchesSearch && matchesDate;
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen">
@@ -232,11 +286,36 @@ export default function Appointments() {
               </Button>
             </div>
           </div>
+
+          <div className="flex gap-3 mb-6">
+            <input
+              type="text"
+              placeholder="Search by patient name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            />
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            />
+            {filterDate && (
+              <Button
+                variant="outline"
+                onClick={() => setFilterDate('')}
+                className="px-3 py-2 text-sm"
+              >
+                Clear Date
+              </Button>
+            )}
+          </div>
           
-          {appointments.length === 0 && !fetchError ? (
+          {filteredAppointments.length === 0 && !fetchError ? (
             <p className="text-black text-center py-8">No appointments found.</p>
           ) : (
-            <Table columns={columns} data={appointments} />
+            <Table columns={columns} data={filteredAppointments} />
           )}
         </Card>
       </div>

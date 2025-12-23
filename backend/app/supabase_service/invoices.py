@@ -11,8 +11,11 @@ class InvoiceService(BaseSupabaseService):
     
     def _convert_decimal_in_result(self, invoice: Dict[str, Any]) -> Dict[str, Any]:
         if invoice and 'amount' in invoice and invoice['amount'] is not None:
-            if isinstance(invoice['amount'], Decimal):
-                invoice['amount'] = float(invoice['amount'])
+            if isinstance(invoice['amount'], (Decimal, float, int)):
+                # Convert to Decimal first to preserve precision, then to string
+                if not isinstance(invoice['amount'], Decimal):
+                    invoice['amount'] = Decimal(str(invoice['amount']))
+                invoice['amount'] = str(invoice['amount'])
         return invoice
     
     def _convert_decimals_in_results(self, invoices: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -26,6 +29,8 @@ class InvoiceService(BaseSupabaseService):
     def _add_timestamps(self, data: Dict[str, Any], created: bool = True) -> Dict[str, Any]:
         # First convert any existing date/time objects
         data = self._convert_dates_to_strings(data)
+        # Convert Decimals to strings for JSON serialization
+        data = self._convert_decimals_to_strings(data)
         
         # Add timestamps as ISO strings
         now = datetime.utcnow().isoformat()

@@ -67,6 +67,26 @@ class AppointmentSerializer(serializers.Serializer):
             return ''
         return ""
     
+    def validate(self, data):
+        from .supabase_service import appointment_service
+        
+        # Check for duplicate appointments with same date and time
+        existing_appointments = appointment_service.get_all_appointments(limit=1000)
+        
+        for appointment in existing_appointments:
+            # Skip if this is an update to the same appointment
+            if self.instance and isinstance(self.instance, dict) and self.instance.get('id') == appointment.get('id'):
+                continue
+            
+            # Check if date and time already exist
+            if (appointment.get('date') == str(data.get('date')) and 
+                appointment.get('time') == str(data.get('time'))):
+                raise serializers.ValidationError(
+                    "An appointment already exists for this date and time."
+                )
+        
+        return data
+    
     def to_representation(self, instance):
         if isinstance(instance, dict):
             data = instance.copy()

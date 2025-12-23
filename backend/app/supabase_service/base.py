@@ -77,15 +77,23 @@ class BaseSupabaseService:
                 converted[key] = value.isoformat()
             elif isinstance(value, time):
                 converted[key] = value.isoformat()
-            elif isinstance(value, Decimal):
-                # Convert Decimal to float for JSON serialization
-                converted[key] = float(value)
+            else:
+                converted[key] = value
+        return converted
+    
+    def _convert_decimals_to_strings(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        converted = {}
+        for key, value in data.items():
+            if isinstance(value, Decimal):
+                # Convert Decimal to string for JSON serialization (preserves precision)
+                converted[key] = str(value)
             else:
                 converted[key] = value
         return converted
     
     def _add_timestamps(self, data: Dict[str, Any], created: bool = True) -> Dict[str, Any]:
         data = self._convert_dates_to_strings(data)
+        data = self._convert_decimals_to_strings(data)
         
         now = datetime.utcnow().isoformat()
         if created:

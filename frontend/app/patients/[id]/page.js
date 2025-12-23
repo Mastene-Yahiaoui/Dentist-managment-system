@@ -181,12 +181,12 @@ export default function PatientDetail() {
   const treatmentColumns = [
     { header: 'Date', accessor: 'date' },
     { header: 'Description', accessor: 'description' },
-    { header: 'Cost', render: (row) => `$${row.cost}` },
+    { header: 'Cost', render: (row) => `DZD ${row.cost}` },
   ];
 
   const invoiceColumns = [
     { header: 'Date', render: (row) => row.issued_at ? new Date(row.issued_at).toLocaleDateString() : '' },
-    { header: 'Amount', render: (row) => `$${row.amount}` },
+    { header: 'Amount', render: (row) => `DZD ${row.amount}` },
     { 
       header: 'Status', 
       render: (row) => (

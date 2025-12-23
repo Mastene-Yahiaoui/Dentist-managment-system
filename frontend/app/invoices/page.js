@@ -293,7 +293,6 @@ export default function Invoices() {
         </Card>
       </div>
 
-      
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -334,15 +333,21 @@ export default function Invoices() {
               value={formData.treatment_id}
               onChange={handleInputChange}
               required
+              disabled={!formData.patient_id}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               <option value="">Select a treatment</option>
-              {treatments.map(treatment => (
+              {treatments
+                .filter(treatment => treatment.patient_id === formData.patient_id)
+                .map(treatment => (
                 <option key={treatment.id} value={treatment.id}>
-                  {treatment.patient_name} - {truncateText(treatment.description, 40)}
+                  {truncateText(treatment.description, 40)}
                 </option>
               ))}
             </select>
+            {!formData.patient_id && (
+              <p className="text-sm text-gray-500 mt-1">Select a patient first</p>
+            )}
           </div>
           
 
@@ -434,15 +439,21 @@ export default function Invoices() {
               value={formData.treatment_id}
               onChange={handleInputChange}
               required
+              disabled={!formData.patient_id}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               <option value="">Select a treatment</option>
-              {treatments.map(treatment => (
+              {treatments
+                .filter(treatment => treatment.patient_id === formData.patient_id)
+                .map(treatment => (
                 <option key={treatment.id} value={treatment.id}>
-                  {treatment.patient_name} - {truncateText(treatment.description, 40)}
+                  {truncateText(treatment.description, 40)}
                 </option>
               ))}
             </select>
+            {!formData.patient_id && (
+              <p className="text-sm text-gray-500 mt-1">Select a patient first</p>
+            )}
           </div>
           
           <Input
