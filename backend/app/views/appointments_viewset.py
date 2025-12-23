@@ -31,7 +31,8 @@ class AppointmentViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     def create(self, request, *args, **kwargs):
         try:
             serializer = AppointmentSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
             appointment_id = appointment_service.create_appointment(serializer.validated_data)
             appointment = appointment_service.get_appointment(appointment_id)
@@ -51,8 +52,14 @@ class AppointmentViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def update(self, request, pk=None, *args, **kwargs):
         try:
-            serializer = AppointmentSerializer(data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
+            # Get existing appointment for validation context
+            existing_appointment = appointment_service.get_appointment(pk)
+            if not existing_appointment:
+                return Response({'error': 'Appointment not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            serializer = AppointmentSerializer(instance=existing_appointment, data=request.data, partial=True)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
             success = appointment_service.update_appointment(pk, serializer.validated_data)
             if not success:

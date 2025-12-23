@@ -66,9 +66,9 @@ export default function Appointments() {
     setSubmitLoading(true);
     setError(null);
     try {
-      console.log('Submitting appointment data:', formData);
+
       const response = await api.createAppointment(formData);
-      console.log('Appointment created successfully:', response);
+      
       setIsModalOpen(false);
       setFormData({
         patient_id: '',
@@ -80,8 +80,25 @@ export default function Appointments() {
       });
       fetchData();
     } catch (error) {
-      console.error('Error creating appointment:', error);
-      setError(error.message || 'Failed to create appointment');
+      let errorMessage = 'Failed to create appointment';
+      
+      if (error.message) {
+        const jsonMatch = error.message.match(/- ({.*})/);
+        if (jsonMatch) {
+          try {
+            const errorData = JSON.parse(jsonMatch[1]);
+            if (errorData.non_field_errors && Array.isArray(errorData.non_field_errors)) {
+              errorMessage = errorData.non_field_errors[0];
+            }
+          } catch {
+            errorMessage = error.message;
+          }
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setSubmitLoading(false);
     }
@@ -118,8 +135,28 @@ export default function Appointments() {
       });
       fetchData();
     } catch (error) {
-      console.error('Error updating appointment:', error);
-      setError(error.message || 'Failed to update appointment');
+      // Extract error message from the error response
+      let errorMessage = 'Failed to update appointment';
+      
+      if (error.message) {
+        // Check if message contains JSON error details (format: "Error message: 400 - {...}")
+        const jsonMatch = error.message.match(/- ({.*})/);
+        if (jsonMatch) {
+          try {
+            const errorData = JSON.parse(jsonMatch[1]);
+            if (errorData.non_field_errors && Array.isArray(errorData.non_field_errors)) {
+              errorMessage = errorData.non_field_errors[0];
+            }
+          } catch {
+            // If parsing fails, use the original message
+            errorMessage = error.message;
+          }
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setSubmitLoading(false);
     }
