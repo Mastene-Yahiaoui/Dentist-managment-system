@@ -24,6 +24,8 @@ export default function Appointments() {
   const [isConfirmDeleteAllOpen, setIsConfirmDeleteAllOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [editingAppointmentId, setEditingAppointmentId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterDate, setFilterDate] = useState('');
   const [formData, setFormData] = useState({
     patient_id: '',
     date: '',
@@ -68,7 +70,7 @@ export default function Appointments() {
     try {
 
       const response = await api.createAppointment(formData);
-      
+
       setIsModalOpen(false);
       setFormData({
         patient_id: '',
@@ -217,6 +219,21 @@ export default function Appointments() {
     )},
   ];
 
+  // Filter appointments based on search term and date
+  const appointmentsWithPatientNames = appointments.map(apt => {
+    const patient = patients.find(p => p.id === apt.patient_id);
+    return {
+      ...apt,
+      patient_name: patient ? `${patient.first_name} ${patient.last_name}` : 'Unknown',
+    };
+  });
+
+  const filteredAppointments = appointmentsWithPatientNames.filter(apt => {
+    const matchesSearch = apt.patient_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDate = filterDate === '' || apt.date === filterDate;
+    return matchesSearch && matchesDate;
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen">
@@ -269,11 +286,36 @@ export default function Appointments() {
               </Button>
             </div>
           </div>
+
+          <div className="flex gap-3 mb-6">
+            <input
+              type="text"
+              placeholder="Search by patient name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            />
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            />
+            {filterDate && (
+              <Button
+                variant="outline"
+                onClick={() => setFilterDate('')}
+                className="px-3 py-2 text-sm"
+              >
+                Clear Date
+              </Button>
+            )}
+          </div>
           
-          {appointments.length === 0 && !fetchError ? (
+          {filteredAppointments.length === 0 && !fetchError ? (
             <p className="text-black text-center py-8">No appointments found.</p>
           ) : (
-            <Table columns={columns} data={appointments} />
+            <Table columns={columns} data={filteredAppointments} />
           )}
         </Card>
       </div>
