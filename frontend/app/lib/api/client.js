@@ -2,6 +2,15 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 const DEBUG = process.env.NODE_ENV === 'development';
 
 /**
+ * Get JWT token from localStorage
+ * @returns {string|null} - JWT token or null
+ */
+function getAuthToken() {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('accessToken');
+}
+
+/**
  * Log a message to the console only in development mode.
  * @param {string} type - 'log' or 'error'
  * @param {...any} args - Arguments to pass to console
@@ -32,6 +41,7 @@ class ApiError extends Error {
 
 /**
  * Perform a fetch request with enhanced error handling and logging.
+ * Includes JWT token in Authorization header.
  * Catches network errors and provides meaningful error messages.
  * Includes request timeout to prevent hanging requests.
  * @param {string} url - The URL to fetch
@@ -48,6 +58,13 @@ async function fetchWithErrorHandling(url, options = {}) {
   const { timeout, ...fetchOptions } = options;
   fetchOptions.signal = signal;
   
+  // Add JWT token to Authorization header
+  const token = getAuthToken();
+  if (token) {
+    fetchOptions.headers = fetchOptions.headers || {};
+    fetchOptions.headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   let timeoutId;
   try {
     timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -57,6 +74,19 @@ async function fetchWithErrorHandling(url, options = {}) {
     const duration = Date.now() - start;
     clearTimeout(timeoutId);
     debugLog('log', `[API] Response: ${response.status} ${response.statusText} for ${url} (${duration}ms)`);
+    
+    // Handle 401 Unauthorized - redirect to login
+    if (response.status === 401) {
+      // Clear auth tokens
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        // Redirect to login
+        window.location.href = '/auth/login';
+      }
+    }
+    
     return response;
   } catch (error) {
     clearTimeout(timeoutId);
@@ -77,6 +107,7 @@ async function fetchWithErrorHandling(url, options = {}) {
     });
   }
 }
+
 
 /**
  * Helper function to handle API responses consistently.

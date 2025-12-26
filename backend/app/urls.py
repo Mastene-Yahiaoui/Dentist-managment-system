@@ -12,6 +12,7 @@ from .views import (
     InventoryViewSet,
     XraysViewSet,
 )
+from .views.auth_viewset import AuthViewSet
 
 logger = logging.getLogger(__name__)
 
@@ -19,15 +20,7 @@ logger = logging.getLogger(__name__)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
-    """
-    Health check endpoint to verify the API is running.
-    
-    Returns status information about the backend service.
-    No authentication required.
-    
-    Query Parameters:
-        - deep: If 'true', includes Supabase connection status (slower)
-    """
+
     response_data = {
         'status': 'healthy',
         'service': 'app-backend',
@@ -76,6 +69,7 @@ def health_check(request):
 
 router = DefaultRouter()
 # Register viewsets with explicit basenames since we're using ViewSet (not ModelViewSet)
+router.register(r'auth', AuthViewSet, basename='auth')
 router.register(r'patients', PatientViewSet, basename='patient')
 router.register(r'appointments', AppointmentViewSet, basename='appointment')
 router.register(r'treatments', TreatmentViewSet, basename='treatment')

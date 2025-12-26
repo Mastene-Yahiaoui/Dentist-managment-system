@@ -14,10 +14,19 @@ class InventoryViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def list(self, request, *args, **kwargs):
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
             limit = int(request.query_params.get('limit', 100))
             limit = min(max(limit, 1), 500)  
             
-            items = inventory_service.get_all_items(limit=limit)
+            # Get all items and filter by user_id
+            all_items = inventory_service.get_all_items(limit=limit)
+            items = [i for i in all_items if i.get('user_id') == user_id]
+            
             serializer = InventorySerializer(items, many=True)
             # Return consistent format with results and count for frontend compatibility
             return Response({
@@ -29,7 +38,17 @@ class InventoryViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def create(self, request, *args, **kwargs):
         try:
-            serializer = InventorySerializer(data=request.data)
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Add user_id to the request data
+            data = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+            data['user_id'] = user_id
+            
+            serializer = InventorySerializer(data=data)
             serializer.is_valid(raise_exception=True)
             
             item_id = inventory_service.create_item(serializer.validated_data)
@@ -40,9 +59,20 @@ class InventoryViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def retrieve(self, request, pk=None, *args, **kwargs):
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
             item = inventory_service.get_item(pk)
             if not item:
                 return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if item belongs to current user
+            if item.get('user_id') != user_id:
+                return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+            
             serializer = InventorySerializer(item)
             return Response(serializer.data)
         except Exception as e:
@@ -50,10 +80,28 @@ class InventoryViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def update(self, request, pk=None, *args, **kwargs):
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Check if item exists and belongs to user
+            item = inventory_service.get_item(pk)
+            if not item:
+                return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            if item.get('user_id') != user_id:
+                return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+            
             serializer = InventorySerializer(data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             
-            success = inventory_service.update_item(pk, serializer.validated_data)
+            # Prevent user_id modification
+            validated_data = serializer.validated_data.copy() if isinstance(serializer.validated_data, dict) else dict(serializer.validated_data)
+            validated_data.pop('user_id', None)
+            
+            success = inventory_service.update_item(pk, validated_data)
             if not success:
                 return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
             
@@ -67,6 +115,20 @@ class InventoryViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def destroy(self, request, pk=None, *args, **kwargs):
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Check if item exists and belongs to user
+            item = inventory_service.get_item(pk)
+            if not item:
+                return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            if item.get('user_id') != user_id:
+                return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+            
             success = inventory_service.delete_item(pk)
             if not success:
                 return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
