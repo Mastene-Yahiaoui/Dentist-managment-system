@@ -381,6 +381,56 @@ export function AuthProvider({ children }) {
   }, [accessToken, API_URL]);
 
   /**
+   * Change email for authenticated user
+   */
+  const changeEmail = useCallback(async (newEmail, currentPassword) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_URL}/auth/change_email/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          new_email: newEmail,
+          current_password: currentPassword,
+        }),
+      });
+
+      const contentType = response.headers.get('content-type');
+      let data;
+
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error('Non-JSON response (Status: ' + response.status + '):', text);
+        throw new Error(`Server error (${response.status}): Invalid response format. Check backend logs.`);
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Failed to change email');
+      }
+
+      // Update user email in state
+      if (user) {
+        setUser({ ...user, email: newEmail });
+        localStorage.setItem('user', JSON.stringify({ ...user, email: newEmail }));
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error('Change email error:', err);
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  }, [accessToken, user, API_URL]);
+
+  /**
    * Check if user is authenticated
    */
   const isAuthenticated = !!user && !!accessToken;
@@ -401,6 +451,7 @@ export function AuthProvider({ children }) {
     requestPasswordReset,
     confirmPasswordReset,
     changePassword,
+    changeEmail,
     refreshAccessToken,
   };
 

@@ -391,3 +391,85 @@ class AuthViewSet(viewsets.ViewSet):
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
                 'UNEXPECTED_ERROR',
             )
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def change_email(self, request):
+    
+        try:
+            user_info = get_user_from_token(request)
+            email = user_info['email']
+            current_password = request.data.get('current_password')
+            new_email = request.data.get('new_email')
+
+            # Validation
+            if not current_password:
+                return create_error_response(
+                    'Current password is required',
+                    status.HTTP_400_BAD_REQUEST,
+                    'MISSING_PASSWORD',
+                )
+
+            if not new_email:
+                return create_error_response(
+                    'New email is required',
+                    status.HTTP_400_BAD_REQUEST,
+                    'MISSING_EMAIL',
+                )
+
+            if new_email == email:
+                return create_error_response(
+                    'New email must be different from current email',
+                    status.HTTP_400_BAD_REQUEST,
+                    'SAME_EMAIL',
+                )
+
+            # Validate email format
+            import re
+            email_regex = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+            if not re.match(email_regex, new_email):
+                return create_error_response(
+                    'Please enter a valid email address',
+                    status.HTTP_400_BAD_REQUEST,
+                    'INVALID_EMAIL',
+                )
+
+            # Change email
+            auth_service = get_auth_service()
+            result = auth_service.change_email(
+                email=email,
+                current_password=current_password,
+                new_email=new_email,
+            )
+
+            logger.info(f"Email change requested for user: {email} -> {new_email}")
+            return create_success_response(
+                data=result,
+                message='Confirmation email sent to your new address',
+                status_code=status.HTTP_200_OK,
+            )
+
+        except (MissingTokenError, InvalidTokenError):
+            return create_error_response(
+                'Invalid or missing authentication token',
+                status.HTTP_401_UNAUTHORIZED,
+                'INVALID_TOKEN',
+            )
+        except InvalidCredentialsError:
+            return create_error_response(
+                'Current password is incorrect',
+                status.HTTP_400_BAD_REQUEST,
+                'INVALID_PASSWORD',
+            )
+        except AuthServiceError as e:
+            logger.error(f"Email change error: {e}", exc_info=True)
+            return create_error_response(
+                str(e),
+                status.HTTP_400_BAD_REQUEST,
+                'EMAIL_CHANGE_ERROR',
+            )
+        except Exception as e:
+            logger.error(f"Unexpected error changing email: {e}", exc_info=True)
+            return create_error_response(
+                f'An unexpected error occurred: {str(e)}',
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                'UNEXPECTED_ERROR',
+            )

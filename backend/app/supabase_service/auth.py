@@ -255,16 +255,16 @@ class SupabaseAuthService:
             # We'll do this by attempting a sign-in with the provided credentials
             try:
                 # Verify current password by attempting sign-in
-                self.client.auth.sign_in_with_password(
-                    email=email,
-                    password=current_password
-                )
+                self.client.auth.sign_in_with_password({
+                    "email": email,
+                    "password": current_password
+                })
                 
                 # If sign-in succeeded, the password is correct
                 # Now update to new password
-                self.client.auth.update_user(
-                    password=new_password
-                )
+                self.client.auth.update_user({
+                    "password": new_password
+                })
                 
                 logger.info(f"Password changed successfully for: {email}")
                 return {
@@ -289,6 +289,46 @@ class SupabaseAuthService:
         except Exception as e:
             logger.error(f"Unexpected error in change_password: {e}", exc_info=True)
             raise AuthServiceError(f"Failed to change password: {str(e)}")
+
+    def change_email(
+        self,
+        email: str,
+        current_password: str,
+        new_email: str,
+    ) -> Dict:
+      
+        try:
+            # First verify current password by attempting sign-in
+            # This establishes an auth session needed for update_user()
+            self.client.auth.sign_in_with_password({
+                "email": email,
+                "password": current_password
+            })
+            
+            # If sign-in succeeded, update email
+            self.client.auth.update_user({
+                "email": new_email
+            })
+            
+            logger.info(f"Email change requested from {email} to {new_email}")
+            return {
+                'message': 'Confirmation email sent to your new address',
+                'email': new_email,
+            }
+
+        except Exception as e:
+            error_msg = str(e).lower()
+            # Check if it's an authentication error
+            if any(keyword in error_msg for keyword in ['invalid', 'unauthorized', 'credentials', 'forbidden']):
+                logger.warning(f"Invalid credentials provided for {email}")
+                raise InvalidCredentialsError("Current password is incorrect")
+            # Check if it's an email already in use error
+            elif any(keyword in error_msg for keyword in ['already', 'exists', 'duplicate', 'unique']):
+                logger.warning(f"Email already in use: {new_email}")
+                raise AuthServiceError("This email is already in use")
+            else:
+                logger.error(f"Error during email change: {e}", exc_info=True)
+                raise AuthServiceError(f"Failed to change email: {str(e)}")
 
 _auth_service = None
 

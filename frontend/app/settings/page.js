@@ -8,11 +8,12 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 
 export default function SettingsPage() {
-  const { user, changePassword, loading, error } = useAuth();
+  const { user, changePassword, changeEmail, loading, error } = useAuth();
   
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [currentPasswordForEmail, setCurrentPasswordForEmail] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [success, setSuccess] = useState(null);
   const [formError, setFormError] = useState(null);
@@ -60,6 +61,11 @@ export default function SettingsPage() {
     setFormError(null);
     setSuccess(null);
 
+    if (!currentPasswordForEmail) {
+      setFormError('Current password is required');
+      return;
+    }
+
     if (!newEmail) {
       setFormError('New email is required');
       return;
@@ -77,9 +83,15 @@ export default function SettingsPage() {
       return;
     }
 
-    // TODO: Add email change functionality when backend endpoint is ready
-    setSuccess('Email change functionality coming soon!');
-    setNewEmail('');
+    const result = await changeEmail(newEmail, currentPasswordForEmail);
+
+    if (result.success) {
+      setSuccess('Confirmation email sent to your new address. Please check your inbox to confirm the change.');
+      setNewEmail('');
+      setCurrentPasswordForEmail('');
+    } else {
+      setFormError(result.error || 'Failed to change email');
+    }
   };
 
   return (
@@ -240,6 +252,25 @@ export default function SettingsPage() {
                 <div className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
                   {user?.email}
                 </div>
+              </div>
+
+              {/* Current Password for Verification */}
+              <div>
+                <label htmlFor="passwordForEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                  Current Password
+                </label>
+                <Input
+                  id="passwordForEmail"
+                  type="password"
+                  required
+                  placeholder="Enter your current password"
+                  value={currentPasswordForEmail}
+                  onChange={(e) => {
+                    setCurrentPasswordForEmail(e.target.value);
+                    setFormError(null);
+                  }}
+                  disabled={loading}
+                />
               </div>
 
               {/* New Email */}
