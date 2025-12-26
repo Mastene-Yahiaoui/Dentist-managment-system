@@ -26,6 +26,7 @@ class XrayService(BaseSupabaseService):
     def upload_image(
         self, 
         patient_id: str, 
+        user_id: str,
         file_data: bytes, 
         filename: str, 
         content_type: str, 
@@ -37,6 +38,7 @@ class XrayService(BaseSupabaseService):
         
         Args:
             patient_id: The patient's ID
+            user_id: The user's ID (for data isolation)
             file_data: The binary file content
             filename: Original filename
             content_type: MIME type (e.g., 'image/png')
@@ -73,6 +75,7 @@ class XrayService(BaseSupabaseService):
             # Prepare metadata record - match Supabase xrays table schema
             record_data: Dict[str, Any] = {
                 'id': str(uuid.uuid4()),
+                'user_id': user_id,
                 'patient_id': patient_id,
                 'image_url': storage_path,
                 'image_name': filename,

@@ -16,10 +16,19 @@ class AppointmentViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def list(self, request, *args, **kwargs):
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
             limit = int(request.query_params.get('limit', 100))
             limit = min(max(limit, 1), 500)
             
-            appointments = appointment_service.get_all_appointments(limit=limit)
+            # Get all appointments and filter by user_id
+            all_appointments = appointment_service.get_all_appointments(limit=limit)
+            appointments = [a for a in all_appointments if a.get('user_id') == user_id]
+            
             serializer = AppointmentSerializer(appointments, many=True)
             return Response({
                 'count': len(serializer.data),
@@ -30,7 +39,17 @@ class AppointmentViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def create(self, request, *args, **kwargs):
         try:
-            serializer = AppointmentSerializer(data=request.data)
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Add user_id to the request data
+            data = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+            data['user_id'] = user_id
+            
+            serializer = AppointmentSerializer(data=data)
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
@@ -42,9 +61,20 @@ class AppointmentViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def retrieve(self, request, pk=None, *args, **kwargs):
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
             appointment = appointment_service.get_appointment(pk)
             if not appointment:
                 return Response({'error': 'Appointment not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if appointment belongs to current user
+            if appointment.get('user_id') != user_id:
+                return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+            
             serializer = AppointmentSerializer(appointment)
             return Response(serializer.data)
         except Exception as e:
@@ -52,16 +82,30 @@ class AppointmentViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def update(self, request, pk=None, *args, **kwargs):
         try:
-            # Get existing appointment for validation context
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Get existing appointment for validation context and ownership check
             existing_appointment = appointment_service.get_appointment(pk)
             if not existing_appointment:
                 return Response({'error': 'Appointment not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if appointment belongs to current user
+            if existing_appointment.get('user_id') != user_id:
+                return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
             
             serializer = AppointmentSerializer(instance=existing_appointment, data=request.data, partial=True)
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
-            success = appointment_service.update_appointment(pk, serializer.validated_data)
+            # Prevent user_id modification
+            validated_data = serializer.validated_data.copy() if isinstance(serializer.validated_data, dict) else dict(serializer.validated_data)
+            validated_data.pop('user_id', None)
+            
+            success = appointment_service.update_appointment(pk, validated_data)
             if not success:
                 return Response({'error': 'Appointment not found'}, status=status.HTTP_404_NOT_FOUND)
             
@@ -75,6 +119,20 @@ class AppointmentViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     
     def destroy(self, request, pk=None, *args, **kwargs):
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Check if appointment exists and belongs to user
+            appointment = appointment_service.get_appointment(pk)
+            if not appointment:
+                return Response({'error': 'Appointment not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            if appointment.get('user_id') != user_id:
+                return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+            
             success = appointment_service.delete_appointment(pk)
             if not success:
                 return Response({'error': 'Appointment not found'}, status=status.HTTP_404_NOT_FOUND)
