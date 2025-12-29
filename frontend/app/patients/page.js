@@ -65,8 +65,10 @@ export default function Patients() {
     setSubmitLoading(true);
     setError(null);
     try {
-      console.log('Submitting patient data:', formData);
-      const response = await api.createPatient(formData);
+      // Remove id field if present - let backend generate it
+      const { id, ...patientData } = formData;
+      console.log('Submitting patient data:', patientData);
+      const response = await api.createPatient(patientData);
       console.log('Patient created successfully:', response);
       setIsModalOpen(false);
       setFormData({

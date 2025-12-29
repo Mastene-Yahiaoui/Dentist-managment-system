@@ -23,6 +23,7 @@ from .models import (
 
 class PatientSerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)
+    user_id = serializers.CharField(required=False)
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=100)
     gender = serializers.ChoiceField(choices=GENDER_CHOICES)
@@ -47,6 +48,7 @@ class PatientSerializer(serializers.Serializer):
 
 class AppointmentSerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)
+    user_id = serializers.CharField(required=False)
     patient_id = serializers.CharField(required=True)
     patient_name = serializers.SerializerMethodField(read_only=True)
     date = serializers.DateField()
@@ -110,6 +112,7 @@ class AppointmentSerializer(serializers.Serializer):
 
 class TreatmentSerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)
+    user_id = serializers.CharField(required=False)
     patient_id = serializers.CharField(required=True)
     patient_name = serializers.SerializerMethodField(read_only=True)
     appointment_id = serializers.CharField(required=False, allow_null=True)
@@ -150,6 +153,7 @@ class TreatmentSerializer(serializers.Serializer):
 
 class InvoiceSerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)
+    user_id = serializers.CharField(required=False)
     patient_id = serializers.CharField(required=True)
     patient_name = serializers.SerializerMethodField(read_only=True)
     treatment_id = serializers.CharField(required=True)
@@ -203,6 +207,7 @@ class InvoiceSerializer(serializers.Serializer):
 
 class InventorySerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)
+    user_id = serializers.CharField(required=False)
     item = serializers.CharField(max_length=255)
     quantity = serializers.IntegerField(min_value=0, default=0)
     status = serializers.SerializerMethodField(read_only=True)
@@ -232,6 +237,7 @@ class InventorySerializer(serializers.Serializer):
 class XraySerializer(serializers.Serializer):
     """Serializer for patient X-ray/scan images."""
     id = serializers.CharField(read_only=True)
+    user_id = serializers.CharField(required=False)
     patient_id = serializers.CharField(required=True)
     image_url = serializers.CharField(read_only=True)
     image_name = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)

@@ -25,6 +25,12 @@ class XraysViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
             limit: Maximum number of results (default 100, max 500)
         """
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
             patient_id = request.query_params.get('patient_id')
             limit = int(request.query_params.get('limit', 100))
             limit = min(max(limit, 1), 500)
@@ -35,7 +41,8 @@ class XraysViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
                 # Get all images (use base service method)
                 xrays = xray_service.get_all()
             
-            # Apply limit
+            # Filter by user_id and apply limit
+            xrays = [x for x in (xrays or []) if x.get('user_id') == user_id]
             xrays = xrays[:limit] if xrays else []
             
             serializer = XraySerializer(xrays, many=True)
@@ -57,6 +64,12 @@ class XraysViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
             - date_taken: Date the image was taken (optional, format: YYYY-MM-DD)
         """
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
             # Validate required fields
             patient_id = request.data.get('patient_id')
             if not patient_id:
@@ -101,9 +114,10 @@ class XraysViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
             description = request.data.get('description', '')
             date_taken = request.data.get('date_taken')
             
-            # Upload to Supabase Storage and save metadata
+            # Upload to Supabase Storage and save metadata with user_id
             xray = xray_service.upload_image(
                 patient_id=patient_id,
+                user_id=user_id,
                 file_data=file_data,
                 filename=filename,
                 content_type=content_type,
@@ -120,12 +134,23 @@ class XraysViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         """Get a specific X-ray image by ID."""
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
             xray = xray_service.get_image(pk)
             if not xray:
                 return Response(
                     {'error': 'X-ray image not found'},
                     status=status.HTTP_404_NOT_FOUND
                 )
+            
+            # Check if xray belongs to current user
+            if xray.get('user_id') != user_id:
+                return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+            
             serializer = XraySerializer(xray)
             return Response(serializer.data)
         except Exception as e:
@@ -140,6 +165,23 @@ class XraysViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
             - date_taken
         """
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Check if xray exists and belongs to user
+            xray = xray_service.get_image(pk)
+            if not xray:
+                return Response(
+                    {'error': 'X-ray image not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            if xray.get('user_id') != user_id:
+                return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+            
             # Only allow updating metadata, not the image itself
             update_data = {}
             
@@ -176,6 +218,23 @@ class XraysViewSet(SupabaseEnabledViewSetMixin, viewsets.ViewSet):
     def destroy(self, request, pk=None, *args, **kwargs):
         """Delete an X-ray image (from both Storage and database)."""
         try:
+            # Get current user from token
+            user_id = request.user.id if hasattr(request.user, 'id') else None
+            
+            if not user_id:
+                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Check if xray exists and belongs to user
+            xray = xray_service.get_image(pk)
+            if not xray:
+                return Response(
+                    {'error': 'X-ray image not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            if xray.get('user_id') != user_id:
+                return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+            
             success = xray_service.delete_image(pk)
             if not success:
                 return Response(
