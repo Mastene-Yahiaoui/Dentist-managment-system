@@ -172,6 +172,27 @@ export default function ForgotPasswordPage() {
           {step === 'confirm' && (
             <form onSubmit={handleConfirmSubmit} className="space-y-4">
               <div>
+                <label htmlFor="confirmEmail" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
+                <Input
+                  id="confirmEmail"
+                  type="email"
+                  required
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError(null);
+                  }}
+                  disabled={loading}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter the email address for this account
+                </p>
+              </div>
+
+              <div>
                 <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">
                   Reset Token
                 </label>

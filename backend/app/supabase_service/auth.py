@@ -189,32 +189,44 @@ class SupabaseAuthService:
     ) -> Dict:
    
         try:
-            # Verify token and reset password
+            logger.debug(f"Confirming password reset for: {email}")
+            
+            # Use verify_otp to exchange the recovery token for a session
+            # This is the correct Supabase method for password recovery tokens
             response = self.client.auth.verify_otp({
                 "email": email,
                 "token": token,
-                "type": "recovery",
+                "type": "recovery"
             })
-
+            
             if not response.user:
+                logger.error("Failed to verify recovery token - no user returned")
                 raise AuthServiceError("Invalid or expired reset token")
-
-            # Update password
-            self.client.auth.admin.update_user_by_id(
-                response.user.id,
-                {"password": new_password}
-            )
-
+            
+            logger.debug(f"Recovery token verified for user: {response.user.id}")
+            
+            # Now that we have a session via the recovery token, update the password
+            # This uses the authenticated session we just created
+            self.client.auth.update_user({"password": new_password})
+            
             logger.info(f"Password reset confirmed for: {email}")
-
+            
             return {
                 'message': 'Password has been reset successfully',
                 'email': email,
             }
 
         except Exception as e:
-            logger.error(f"Failed to confirm password reset: {e}")
-            raise AuthServiceError(f"Failed to reset password: {str(e)}")
+            error_msg = str(e).lower()
+            logger.error(f"Failed to confirm password reset: {e}", exc_info=True)
+            
+            # Provide helpful error messages
+            if 'not allowed' in error_msg or 'access denied' in error_msg or 'invalid' in error_msg:
+                raise AuthServiceError("Reset token is invalid or has expired. Please request a new password reset.")
+            elif 'expired' in error_msg or 'no session' in error_msg:
+                raise AuthServiceError("Reset token has expired. Please request a new password reset.")
+            else:
+                raise AuthServiceError(f"Failed to reset password: {str(e)}")
 
     def logout(self, user_id: str) -> Dict:
     
