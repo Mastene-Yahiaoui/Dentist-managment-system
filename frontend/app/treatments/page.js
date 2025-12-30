@@ -12,6 +12,7 @@ import { patients_api } from '../lib/api';
 import { appointments_api } from '../lib/api';
 import { treatments_api } from '../lib/api';
 import IconButton from '../components/IconButton';
+import SearchableSelect from '../components/SearchableSelect';
 
 export default function Treatments() {
   const [treatments, setTreatments] = useState([]);
@@ -268,25 +269,17 @@ export default function Treatments() {
           </div>
         )}
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-black mb-2">
-              Patient <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="patient_id"
-              value={formData.patient_id}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            >
-              <option value="">Select a patient</option>
-              {patients.map(patient => (
-                <option key={patient.id} value={patient.id}>
-                  {patient.first_name} {patient.last_name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <SearchableSelect
+            label="Patient"
+            name="patient_id"
+            value={formData.patient_id}
+            onChange={handleInputChange}
+            required
+            options={patients}
+            getOptionLabel={(patient) => `${patient.first_name} ${patient.last_name}`}
+            getOptionValue={(patient) => patient.id}
+            placeholder="Search patient by name..."
+          />
           
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -379,25 +372,17 @@ export default function Treatments() {
           </div>
         )}
         <form onSubmit={handleEditSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-black mb-2">
-              Patient <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="patient_id"
-              value={formData.patient_id}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            >
-              <option value="">Select a patient</option>
-              {patients.map(patient => (
-                <option key={patient.id} value={patient.id}>
-                  {patient.first_name} {patient.last_name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <SearchableSelect
+            label="Patient"
+            name="patient_id"
+            value={formData.patient_id}
+            onChange={handleInputChange}
+            required
+            options={patients}
+            getOptionLabel={(patient) => `${patient.first_name} ${patient.last_name}`}
+            getOptionValue={(patient) => patient.id}
+            placeholder="Search patient by name..."
+          />
           
           <div className="mb-4">
             <label className="block text-sm font-medium text-black mb-2">
