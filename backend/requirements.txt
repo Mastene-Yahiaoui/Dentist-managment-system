@@ -4,6 +4,7 @@ djangorestframework==3.16.1
 django-cors-headers==4.9.0
 django-filter==25.2
 djangorestframework-simplejwt
+gunicorn==21.2.0
 
 # Django Dependencies (automatically installed with Django)
 asgiref==3.11.0

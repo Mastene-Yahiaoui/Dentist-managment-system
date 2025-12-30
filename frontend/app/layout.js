@@ -3,8 +3,21 @@ import Sidebar from "./components/Sidebar";
 import { AuthProvider } from "./context/AuthContext";
 
 export const metadata = {
-  title: "DentNotion - Dental Clinic Management",
-  description: "Complete dental clinic management system",
+  title: "Dentnotion - Dentist Management System",
+  description: "Complete dentist management system for appointments, treatments, invoices, and patient records",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Dentnotion",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/icon-192x192.png",
+  },
 };
 
 export default function RootLayout({ children }) {
