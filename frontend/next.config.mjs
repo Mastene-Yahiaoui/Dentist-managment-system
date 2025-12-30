@@ -3,10 +3,12 @@ import withPWA from 'next-pwa';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
-  // Use Webpack for PWA compatibility
+  // Webpack config for PWA compatibility
   webpack: (config) => {
     return config;
   },
+  // Turbopack config (empty to use defaults)
+  turbopack: {},
 };
 
 const withPWAConfig = withPWA({
