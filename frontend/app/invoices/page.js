@@ -29,6 +29,8 @@ export default function Invoices() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [editingInvoiceId, setEditingInvoiceId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTreatmentCost, setSelectedTreatmentCost] = useState(null);
+  const [isAmountManuallySet, setIsAmountManuallySet] = useState(false);
   const [formData, setFormData] = useState({
     patient_id: '',
     treatment_id: '',
@@ -66,7 +68,33 @@ export default function Invoices() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'treatment_id') {
+      // Find the selected treatment and auto-populate amount
+      const selectedTreatment = treatments.find(t => t.id === value);
+      if (selectedTreatment && selectedTreatment.cost) {
+        setSelectedTreatmentCost(selectedTreatment.cost);
+        setFormData(prev => ({ ...prev, [name]: value, amount: selectedTreatment.cost }));
+        setIsAmountManuallySet(false);
+      // If amount is not manually set, send as null to let the trigger populate it
+      const dataToSubmit = {
+        ...formData,
+        amount: isAmountManuallySet ? formData.amount : null
+      };
+      await invoices_api.createInvoice(dataToSubmit);
+      setIsModalOpen(false);
+      setFormData({ patient_id: '', treatment_id: '', amount: '', status: 'Unpaid' });
+      setSelectedTreatmentCost(null);
+      setIsAmountManuallySet(false);
+       setIsAmountManuallySet(false);
+      }
+    } else if (name === 'amount') {
+      // Mark amount as manually set if user changes it
+      setIsAmountManuallySet(value !== '' && value !== String(selectedTreatmentCost));
+      setFormData(prev => ({ ...prev, [name]: value }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -82,12 +110,15 @@ export default function Invoices() {
 
      catch (err) {
       console.error('Error creating invoice', err);
-      setError(err.message ||'Failed to create invoice');
-    } finally {
-      setSubmitLoading(false);
-    }
-  };
-
+    const selectedTreatment = treatments.find(t => t.id === invoice.treatment_id);
+    setFormData({
+      patient_id: invoice.patient_id,
+      treatment_id: invoice.treatment_id || '',
+      amount: invoice.amount,
+      status: invoice.status,
+    });
+    setSelectedTreatmentCost(selectedTreatment?.cost || null);
+    setIsAmountManuallySet(true);
   const handleEditClick = (invoice) => {
     setFormData({
       patient_id: invoice.patient_id,
@@ -103,7 +134,9 @@ export default function Invoices() {
     e.preventDefault();
     setSubmitLoading(true);
     setError(null);
-    try {
+    trsetSelectedTreatmentCost(null);
+      setIsAmountManuallySet(false);
+      try {
       await invoices_api.updateInvoice(editingInvoiceId, formData);
       setIsEditModalOpen(false);
       setEditingInvoiceId(null);
@@ -296,7 +329,11 @@ export default function Invoices() {
 
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTreatmentCost(null);
+          setIsAmountManuallySet(false);
+        }}
         title="Add New Invoice"
       >
         {error && (
@@ -343,17 +380,28 @@ export default function Invoices() {
             )}
           </div>
           
-
-          
-          <Input
-            label="Amount"
-            name="amount"
-            type="number"
-            step="0.01"
-            value={formData.amount}
-            onChange={handleInputChange}
-            required
-          />
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-black mb-2">
+              Amount <span className="text-red-500">*</span>
+              {selectedTreatmentCost && !isAmountManuallySet && (
+                <span className="text-gray-500 text-xs ml-2">(Auto-filled from treatment cost: DZD {selectedTreatmentCost})</span>
+              )}
+            </label>
+            <input
+              type="number"
+              name="amount"
+              step="0.01"
+              min="0"
+              value={formData.amount}
+              onChange={handleInputChange}
+              placeholder={selectedTreatmentCost ? `DZD ${selectedTreatmentCost}` : 'Enter amount'}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            />
+            {selectedTreatmentCost && isAmountManuallySet && (
+              <p className="text-sm text-orange-600 mt-1">You have overridden the treatment cost</p>
+            )}
+          </div>
           
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -441,15 +489,28 @@ export default function Invoices() {
             )}
           </div>
           
-          <Input
-            label="Amount"
-            name="amount"
-            type="number"
-            step="0.01"
-            value={formData.amount}
-            onChange={handleInputChange}
-            required
-          />
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-black mb-2">
+              Amount <span className="text-red-500">*</span>
+              {selectedTreatmentCost && !isAmountManuallySet && (
+                <span className="text-gray-500 text-xs ml-2">(Auto-filled from treatment cost: DZD {selectedTreatmentCost})</span>
+              )}
+            </label>
+            <input
+              type="number"
+              name="amount"
+              step="0.01"
+              min="0"
+              value={formData.amount}
+              onChange={handleInputChange}
+              placeholder={selectedTreatmentCost ? `DZD ${selectedTreatmentCost}` : 'Enter amount'}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            />
+            {selectedTreatmentCost && isAmountManuallySet && (
+              <p className="text-sm text-orange-600 mt-1">You have overridden the treatment cost</p>
+            )}
+          </div>
           
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -477,6 +538,8 @@ export default function Invoices() {
                 amount: '',
                 status: 'Unpaid',
               });
+              setSelectedTreatmentCost(null);
+              setIsAmountManuallySet(false);
             }} disabled={submitLoading}>
               Cancel
             </Button>
