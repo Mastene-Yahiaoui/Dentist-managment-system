@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import Navbar from '../components/Navbar';
 
 export default function SettingsPage() {
   const { user, changePassword, changeEmail, loading, error } = useAuth();
