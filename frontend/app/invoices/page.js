@@ -76,17 +76,8 @@ export default function Invoices() {
         setSelectedTreatmentCost(selectedTreatment.cost);
         setFormData(prev => ({ ...prev, [name]: value, amount: selectedTreatment.cost }));
         setIsAmountManuallySet(false);
-      // If amount is not manually set, send as null to let the trigger populate it
-      const dataToSubmit = {
-        ...formData,
-        amount: isAmountManuallySet ? formData.amount : null
-      };
-      await invoices_api.createInvoice(dataToSubmit);
-      setIsModalOpen(false);
-      setFormData({ patient_id: '', treatment_id: '', amount: '', status: 'Unpaid' });
-      setSelectedTreatmentCost(null);
-      setIsAmountManuallySet(false);
-       setIsAmountManuallySet(false);
+      } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
       }
     } else if (name === 'amount') {
       // Mark amount as manually set if user changes it
@@ -102,14 +93,21 @@ export default function Invoices() {
     setSubmitLoading(true);
     setError(null);
     try {
-       await invoices_api.createInvoice(formData);
-       setIsModalOpen(false);
-       setFormData({ patient_id: '', treatment_id: '', amount: '', status: 'Unpaid' });
-       fetchData();
-    }
-
-     catch (err) {
+      await invoices_api.createInvoice(formData);
+      setIsModalOpen(false);
+      setFormData({ patient_id: '', treatment_id: '', amount: '', status: 'Unpaid' });
+      setSelectedTreatmentCost(null);
+      setIsAmountManuallySet(false);
+      fetchData();
+    } catch (err) {
       console.error('Error creating invoice', err);
+      setError(err.message || 'Failed to create invoice');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const handleEditClick = (invoice) => {
     const selectedTreatment = treatments.find(t => t.id === invoice.treatment_id);
     setFormData({
       patient_id: invoice.patient_id,
@@ -119,13 +117,6 @@ export default function Invoices() {
     });
     setSelectedTreatmentCost(selectedTreatment?.cost || null);
     setIsAmountManuallySet(true);
-  const handleEditClick = (invoice) => {
-    setFormData({
-      patient_id: invoice.patient_id,
-      treatment_id: invoice.treatment_id || '',
-      amount: invoice.amount,
-      status: invoice.status,
-    });
     setEditingInvoiceId(invoice.id);
     setIsEditModalOpen(true);
   };
@@ -134,9 +125,7 @@ export default function Invoices() {
     e.preventDefault();
     setSubmitLoading(true);
     setError(null);
-    trsetSelectedTreatmentCost(null);
-      setIsAmountManuallySet(false);
-      try {
+    try {
       await invoices_api.updateInvoice(editingInvoiceId, formData);
       setIsEditModalOpen(false);
       setEditingInvoiceId(null);
@@ -146,6 +135,8 @@ export default function Invoices() {
         amount: '',
         status: 'Unpaid',
       });
+      setSelectedTreatmentCost(null);
+      setIsAmountManuallySet(false);
       fetchData();
     } catch (error) {
       console.error('Error updating invoice:', error);
