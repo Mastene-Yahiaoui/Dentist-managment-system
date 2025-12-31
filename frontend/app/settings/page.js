@@ -95,19 +95,21 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="p-8">
-      <div className="max-w-2xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-2">Manage your account settings and preferences</p>
-        </div>
+    <div className="min-h-screen">
+      <Navbar title="Settings" />
+      <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full">
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base">Manage your account settings and preferences</p>
+          </div>
 
-        {/* Tabs */}
-        <div className="flex space-x-4 mb-8 border-b border-gray-200">
-          <button
-            onClick={() => {
-              setActiveTab('password');
+          {/* Tabs */}
+          <div className="flex space-x-2 sm:space-x-4 mb-8 border-b border-gray-200 overflow-x-auto">
+            <button
+              onClick={() => {
+                setActiveTab('password');
               setSuccess(null);
               setFormError(null);
             }}
@@ -307,6 +309,7 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

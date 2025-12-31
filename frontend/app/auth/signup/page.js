@@ -92,7 +92,7 @@ export default function SignupPage() {
                 id="fullName"
                 name="fullName"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Enter your full name"
                 value={formData.fullName}
                 onChange={handleChange}
                 disabled={loading}
@@ -159,22 +159,6 @@ export default function SignupPage() {
                 </button>
               </div>
             </div>
-
-            {/* Terms & Conditions */}
-            <label className="flex items-start">
-              <input
-                type="checkbox"
-                className="w-4 h-4 text-blue-600 rounded mt-1"
-                required
-                disabled={loading}
-              />
-              <span className="ml-2 text-sm text-gray-700">
-                I agree to the{' '}
-                <Link href="/terms" className="text-blue-600 hover:text-blue-700">
-                  Terms of Service
-                </Link>
-              </span>
-            </label>
 
             {/* Submit Button */}
             <Button

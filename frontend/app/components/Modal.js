@@ -21,8 +21,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+    <div className="fixed inset-0 z-50 overflow-y-auto px-4 sm:px-0">
+      <div className="flex min-h-screen items-center justify-center py-4 sm:py-0">
         {/* Background overlay */}
         <div 
           className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-40"
@@ -30,18 +30,15 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
           aria-hidden="true"
         ></div>
 
-        {/* Spacer for centering */}
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
         {/* Modal panel */}
-        <div className="relative z-50 inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle w-full sm:w-auto">
-          <div className={`${sizeClasses[size]} w-full`}>
-            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-black">{title}</h3>
+        <div className={`relative z-50 bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full ${sizeClasses[size]}`}>
+          <div className="max-h-[90vh] overflow-y-auto">
+            <div className="bg-white px-4 py-5 sm:p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-lg sm:text-xl font-semibold text-black pr-4">{title}</h3>
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                  className="flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none min-w-10 min-h-10 flex items-center justify-center"
                   type="button"
                 >
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -49,7 +46,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
                   </svg>
                 </button>
               </div>
-              <div>{children}</div>
+              <div className="mt-4">{children}</div>
             </div>
           </div>
         </div>

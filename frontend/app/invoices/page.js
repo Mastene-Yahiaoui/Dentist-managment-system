@@ -207,7 +207,7 @@ export default function Invoices() {
     <div className="min-h-screen">
       <Navbar title="Invoices" />
       
-      <div className="p-8">
+      <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full">
         {fetchError&&(
            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
             <p className="font-semibold">Error loading invoices</p>
@@ -222,11 +222,11 @@ export default function Invoices() {
         )}
 
         <Card>
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex space-x-2">
+          <div className="flex flex-col gap-4 mb-6">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               <button
                 onClick={() => setFilterStatus('all')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                   filterStatus === 'all' 
                     ? 'bg-blue-600 text-white' 
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -236,7 +236,7 @@ export default function Invoices() {
               </button>
               <button
                 onClick={() => setFilterStatus('Paid')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                   filterStatus === 'Paid' 
                     ? 'bg-green-600 text-white' 
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -246,7 +246,7 @@ export default function Invoices() {
               </button>
               <button
                 onClick={() => setFilterStatus('Unpaid')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                   filterStatus === 'Unpaid' 
                     ? 'bg-red-600 text-white' 
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -255,26 +255,26 @@ export default function Invoices() {
                 Unpaid
               </button>
             </div>
-            <div className="flex gap-3 items-center">
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
               <input
                 type="text"
                 placeholder="Search by patient name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               />
-              <div className="flex gap-3">
-                <Button onClick={() => setIsModalOpen(true)}>
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <Button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto">
                   + Add Invoice
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-red-300 text-red-700 hover:bg-red-600 hover:text-white hover:border-red-600"
+                  className="border-red-300 text-red-700 hover:bg-red-600 hover:text-white hover:border-red-600 w-full sm:w-auto"
                   onClick={() => setIsConfirmDeleteAllOpen(true)}
                   disabled={invoices.length === 0}
                 >
-                  <span className="inline-flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <span className="inline-flex items-center justify-center gap-2 w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                       <path d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h14a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1H9zm-3 6h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z" />
                     </svg>
                     Delete All

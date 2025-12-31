@@ -250,7 +250,7 @@ export default function Appointments() {
     <div className="min-h-screen">
       <Navbar title="Appointments" />
       
-      <div className="p-8">
+      <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full">
         {/* Error Alert */}
         {fetchError && (
           <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
@@ -266,20 +266,20 @@ export default function Appointments() {
         )}
 
         <Card>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-black">All Appointments</h2>
-            <div className="flex gap-3">
-              <Button onClick={() => setIsModalOpen(true)}>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-black">All Appointments</h2>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto">
                 + Add Appointment
               </Button>
               <Button
                 variant="outline"
-                className="border-red-300 text-red-700 hover:bg-red-600 hover:text-white hover:border-red-600"
+                className="border-red-300 text-red-700 hover:bg-red-600 hover:text-white hover:border-red-600 w-full sm:w-auto"
                 onClick={() => setIsConfirmDeleteAllOpen(true)}
                 disabled={appointments.length === 0}
               >
-                <span className="inline-flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <span className="inline-flex items-center justify-center gap-2 w-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                     <path d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h14a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1H9zm-3 6h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z" />
                   </svg>
                   Delete All
@@ -288,29 +288,31 @@ export default function Appointments() {
             </div>
           </div>
 
-          <div className="flex gap-3 mb-6">
+          <div className="flex flex-col gap-3 mb-6">
             <input
               type="text"
               placeholder="Search by patient name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             />
-            <input
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            />
-            {filterDate && (
-              <Button
-                variant="outline"
-                onClick={() => setFilterDate('')}
-                className="px-3 py-2 text-sm"
-              >
-                Clear Date
-              </Button>
-            )}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              />
+              {filterDate && (
+                <Button
+                  variant="outline"
+                  onClick={() => setFilterDate('')}
+                  className="w-full sm:w-auto px-3 py-2 text-sm"
+                >
+                  Clear Date
+                </Button>
+              )}
+            </div>
           </div>
           
           {filteredAppointments.length === 0 && !fetchError ? (
