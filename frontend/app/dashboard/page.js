@@ -151,7 +151,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen">
       <Navbar title="Dashboard" />
-       <div className="p-8">
+       <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full">
         {fetchError && (
           <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
             <p className="font-semibold">Error loading dashboard data</p>
