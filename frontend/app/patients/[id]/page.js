@@ -19,6 +19,12 @@ export default function PatientDetail() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
   
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [editError, setEditError] = useState(null);
+  
   // X-ray upload state
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
@@ -159,6 +165,49 @@ export default function PatientDetail() {
     }
   };
 
+  // Edit mode handlers
+  const handleEditClick = () => {
+    setEditFormData({
+      first_name: patient.first_name || '',
+      last_name: patient.last_name || '',
+      gender: patient.gender || 'M',
+      birth_date: patient.birth_date || '',
+      phone: patient.phone || '',
+      email: patient.email || '',
+      address: patient.address || '',
+      medical_history: patient.medical_history || '',
+    });
+    setEditError(null);
+    setIsEditing(true);
+  };
+
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setEditFormData({});
+    setEditError(null);
+  };
+
+  const handleEditSave = async () => {
+    setIsSaving(true);
+    setEditError(null);
+    try {
+      const updatedPatient = await api.updatePatient(params.id, editFormData);
+      setPatient(updatedPatient);
+      setIsEditing(false);
+      setEditFormData({});
+    } catch (error) {
+      console.error('Error updating patient:', error);
+      setEditError(error.message || 'Failed to update patient');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const appointmentColumns = [
     { header: 'Date', accessor: 'date' },
     { header: 'Time', accessor: 'time' },
@@ -247,37 +296,164 @@ export default function PatientDetail() {
       
       <div className="p-8 space-y-6">
         {/* Patient Information */}
-        <Card title="Patient Information">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-gray-700">Full Name</p>
-              <p className="font-medium text-black">{patient.first_name} {patient.last_name}</p>
+        <Card 
+          title="Patient Information"
+          action={
+            !isEditing && (
+              <button
+                onClick={handleEditClick}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                ✏️ Edit
+              </button>
+            )
+          }
+        >
+          {editError && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {editError}
             </div>
-            <div>
-              <p className="text-sm text-gray-700">Gender</p>
-              <p className="font-medium text-black">{patient.gender === 'M' ? 'Male' : patient.gender === 'F' ? 'Female' : 'Other'}</p>
+          )}
+          
+          {isEditing ? (
+            /* Edit Mode */
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">First Name</label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    value={editFormData.first_name}
+                    onChange={handleEditInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Last Name</label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    value={editFormData.last_name}
+                    onChange={handleEditInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Gender</label>
+                  <select
+                    name="gender"
+                    value={editFormData.gender}
+                    onChange={handleEditInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                  >
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Birth Date</label>
+                  <input
+                    type="date"
+                    name="birth_date"
+                    value={editFormData.birth_date}
+                    onChange={handleEditInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Phone</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={editFormData.phone}
+                    onChange={handleEditInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={editFormData.email}
+                    onChange={handleEditInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm text-gray-700 mb-1">Address</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={editFormData.address}
+                    onChange={handleEditInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm text-gray-700 mb-1">Medical History</label>
+                  <textarea
+                    name="medical_history"
+                    value={editFormData.medical_history}
+                    onChange={handleEditInputChange}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black resize-none"
+                  />
+                </div>
+              </div>
+              
+              {/* Save / Cancel Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  onClick={handleEditCancel}
+                  disabled={isSaving}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEditSave}
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
+                >
+                  {isSaving ? 'Saving...' : '💾 Save'}
+                </button>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-700">Birth Date</p>
-              <p className="font-medium text-black">{patient.birth_date}</p>
+          ) : (
+            /* View Mode */
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-700">Full Name</p>
+                <p className="font-medium text-black">{patient.first_name} {patient.last_name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-700">Gender</p>
+                <p className="font-medium text-black">{patient.gender === 'M' ? 'Male' : patient.gender === 'F' ? 'Female' : 'Other'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-700">Birth Date</p>
+                <p className="font-medium text-black">{patient.birth_date}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-700">Phone</p>
+                <p className="font-medium text-black">{patient.phone}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-700">Email</p>
+                <p className="font-medium text-black">{patient.email || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-700">Address</p>
+                <p className="font-medium text-black">{patient.address || 'N/A'}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-sm text-gray-700">Medical History</p>
+                <p className="font-medium text-black">{patient.medical_history || 'N/A'}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-700">Phone</p>
-              <p className="font-medium text-black">{patient.phone}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-700">Email</p>
-              <p className="font-medium text-black">{patient.email || 'N/A'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-700">Address</p>
-              <p className="font-medium text-black">{patient.address || 'N/A'}</p>
-            </div>
-            <div className="col-span-2">
-              <p className="text-sm text-gray-700">Medical History</p>
-              <p className="font-medium text-black">{patient.medical_history || 'N/A'}</p>
-            </div>
-          </div>
+          )}
         </Card>
 
         {/* Appointments */}
