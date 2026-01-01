@@ -79,6 +79,7 @@ export default function Treatments() {
       const submitData = {
         ...formData,
         appointment_id: formData.appointment_id || null,
+        cost: parseFloat(parseFloat(formData.cost).toFixed(2)),
       };
       await treatments_api.createTreatment(submitData);
       setIsModalOpen(false);
@@ -118,6 +119,7 @@ export default function Treatments() {
       const submitData = {
         ...formData,
         appointment_id: formData.appointment_id || null,
+        cost: parseFloat(parseFloat(formData.cost).toFixed(2)),
       };
       await treatments_api.updateTreatment(editingTreatmentId, submitData);
       setIsEditModalOpen(false);

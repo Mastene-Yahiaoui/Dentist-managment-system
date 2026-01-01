@@ -93,7 +93,12 @@ export default function Invoices() {
     setSubmitLoading(true);
     setError(null);
     try {
-      await invoices_api.createInvoice(formData);
+      // Convert amount to proper decimal format to avoid floating-point precision issues
+      const submissionData = {
+        ...formData,
+        amount: parseFloat(parseFloat(formData.amount).toFixed(2))
+      };
+      await invoices_api.createInvoice(submissionData);
       setIsModalOpen(false);
       setFormData({ patient_id: '', treatment_id: '', amount: '', status: 'Unpaid' });
       setSelectedTreatmentCost(null);
@@ -126,7 +131,12 @@ export default function Invoices() {
     setSubmitLoading(true);
     setError(null);
     try {
-      await invoices_api.updateInvoice(editingInvoiceId, formData);
+      // Convert amount to proper decimal format to avoid floating-point precision issues
+      const submissionData = {
+        ...formData,
+        amount: parseFloat(parseFloat(formData.amount).toFixed(2))
+      };
+      await invoices_api.updateInvoice(editingInvoiceId, submissionData);
       setIsEditModalOpen(false);
       setEditingInvoiceId(null);
       setFormData({
