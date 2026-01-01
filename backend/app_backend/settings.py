@@ -148,14 +148,21 @@ if not SUPABASE_KEY:
 # =============================================================================
 # CORS CONFIGURATION
 # =============================================================================
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+# Build CORS allowed origins from environment variables
+# Format: comma-separated list of domains
+CORS_ALLOWED_ORIGINS_STR = os.getenv(
+    'CORS_ALLOWED_ORIGINS',
+    'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000'
+)
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS_STR.split(',')]
 
+# Also allow subdomains for Vercel deployments
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
+
+# Additional CORS settings for production
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_ALLOW_HEADERS = ['*']
 # =============================================================================
 # REST FRAMEWORK CONFIGURATION
 # =============================================================================
